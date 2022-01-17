@@ -1,0 +1,4 @@
+C:\Users\janru\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\202.7660.37\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" "E:\SKOLA_ZCU\4. rocnik\KIV_UPS\Battleship"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/cmake-build-debug
