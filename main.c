@@ -47,7 +47,6 @@ int main(int argc , char *argv[]) {
     games = (game **)malloc(sizeof(game) * MAX_PLAYERS/2 + 1);
     int skt, res, i, inlen;
     char *message;
-    int is_ipv4 = -1;
     int correct_port = -1;
     struct sockaddr_in server, client;
     if(argc != 3){
@@ -55,14 +54,6 @@ int main(int argc , char *argv[]) {
     }
 
 
-    for(i = 0; i < strlen(argv[2]); i++){
-        if(!isdigit(argv[2][i]))
-        {
-            printf("Port is not a digit\n");
-            return EXIT_FAILURE;
-        }
-
-    }
 
     skt = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (skt < 0) {
@@ -74,7 +65,6 @@ int main(int argc , char *argv[]) {
 
     server.sin_family = AF_INET;
 
-
     for(i = 0; i < strlen(argv[1]); i++){
         if(!isdigit(argv[2][i]))
         {
@@ -85,7 +75,8 @@ int main(int argc , char *argv[]) {
     }
 
     server.sin_port = htons(atoi(argv[2]));
-    if(bind(server_socket,(struct sockaddr *)&server , sizeof(server)) < 0)
+    server.sin_addr.s_addr = INADDR_ANY;
+    if(bind(skt,(struct sockaddr *)&server , sizeof(server)) < 0)
     {
         puts("Bind failed");
         return EXIT_FAILURE;
@@ -120,11 +111,6 @@ int main(int argc , char *argv[]) {
         puts("Handler assigned");
     }
 
-    if (skt < 0)
-    {
-        perror("Accept failed");
-        return 1;
-    }
 
 
     return EXIT_SUCCESS;
