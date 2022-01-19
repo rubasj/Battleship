@@ -10,10 +10,7 @@ public class CommunicationHandler {
     public boolean isNicknameOK(String nickname){
         Pattern pattern = Pattern.compile("\\w+");
         Matcher matcher = pattern.matcher(nickname);
-        if(matcher.matches()){
-            return true;
-        }
-        return false;
+        return matcher.matches();
     }
 
     public String[] splitMessage(String message){

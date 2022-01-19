@@ -27,7 +27,6 @@ typedef struct game {
 
 game *init_game(board *b1, board *b2, player *p1, player *p2, int game_id);
 char player_turn(game *game, int player, uint target);
-int free_game(game **game);
+void game_free(game **game);
 int is_game_over(game *game);
-void set_game_state(game *game, int state);
 char *get_current_board_state(game *game, char *nickname);

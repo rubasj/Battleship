@@ -45,27 +45,19 @@ int main(int argc , char *argv[]) {
 
     players = (player **) malloc(sizeof(player) * MAX_PLAYERS); // up to 1k players can join
     games = (game **)malloc(sizeof(game) * MAX_PLAYERS/2 + 1);
-    int skt, res, i, inlen;
+    int client_socket, skt, c, *new_sock;
+    struct sockaddr_in addr , incoming;
     char *message;
+    int is_ipv4 = -1;
     int correct_port = -1;
-    struct sockaddr_in server, client;
-    if(argc != 3){
+    is_ipv4 = inet_pton(AF_INET, argv[1], &(addr.sin_addr));
+    int i = 0;
+    if((!is_ipv4 && (strcmp(argv[1], "localhost") != 0))){
+        printf("Faulty ip address.\n");
         return 0;
     }
 
-
-
-    skt = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (skt < 0) {
-        printf("Nelze inicializovat socket");
-        return EXIT_FAILURE;
-    }
-
-
-
-    server.sin_family = AF_INET;
-
-    for(i = 0; i < strlen(argv[1]); i++){
+    for(i = 0; i < strlen(argv[2]); i++){
         if(!isdigit(argv[2][i]))
         {
             printf("Port is not a digit\n");
@@ -74,44 +66,59 @@ int main(int argc , char *argv[]) {
 
     }
 
-    server.sin_port = htons(atoi(argv[2]));
-    server.sin_addr.s_addr = INADDR_ANY;
-    if(bind(skt,(struct sockaddr *)&server , sizeof(server)) < 0)
+
+
+    skt = socket(AF_INET , SOCK_STREAM , 0);
+    if (skt == -1)
     {
-        puts("Bind failed");
+        printf("ERR: Could not create socket.");
+    }
+
+
+
+    addr.sin_family = AF_INET;
+    if((strcmp(argv[1], "localhost") == 0))
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    else
+        addr.sin_addr.s_addr = inet_addr(argv[1]);
+
+    addr.sin_port = htons(atoi(argv[2]) );
+
+    if(bind(skt, (struct sockaddr *)&addr , sizeof(addr)) < 0)
+    {
+        puts("ERR: Bind failed");
         return EXIT_FAILURE;
     }
-
     puts("Bind OK");
 
-    res = listen(skt, 5); // 5 spojeni
+    listen(skt , 50);
 
-    if (res != 0) {
-        printf("Nelze vytvorit frontu spojeni");
-    }
 
+    c = sizeof(struct sockaddr_in);
     puts("Waiting for incoming connections...");
-    inlen = sizeof(struct sockaddr_in);
-    while(running)
+
+    while( (client_socket = accept(skt, (struct sockaddr *)&incoming, (socklen_t *) & c)) )
     {
-        int inskt = accept(skt, (struct sockaddr*)&client, &inlen);
         puts("Connection accepted");
 
         pthread_t thr;
         new_sock = malloc(1);
         *new_sock = client_socket;
 
-        if( pthread_create(&thr , NULL ,  socket_handler , (void*) new_sock) < 0)
+        if(pthread_create(&thr , NULL , socket_handler , (void*) new_sock) < 0)
         {
-            perror("Thread: Could not create thread");
+            perror("Could not create thread");
             return EXIT_FAILURE;
         }
 
-        pthread_detach(thr);
-        puts("Handler assigned");
+        pthread_join(thr , NULL);
     }
 
-
+    if (client_socket < 0)
+    {
+        perror("Accept failed");
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
@@ -147,7 +154,7 @@ char **split_message(char *message, int *message_len) {
 
 
 int get_game_pos_by_player_id(int sock) {
-    int i = 0;
+    int i;
     for (i = 0; i < game_count; i++) {
         if ((games[i]->player1->socket) == sock || (games[i]->player2->socket) == sock) {
             return i;
@@ -158,7 +165,7 @@ int get_game_pos_by_player_id(int sock) {
 }
 
 
-int add_game_to_array(player *p1, player *p2){ //TODO misto socketu se tam da player
+int add_game_to_array(player *p1, player *p2){
     printf("Creating new game with game_state: %d\n", game_count);
     /* Create boards */
     board *temp1 = board_create();
@@ -256,7 +263,7 @@ int get_player_state_by_socket_id(int socket){
     return -1;
 }
 
-int get_player_array_position_by_socket_id(int socket){
+int get_player_idxarr_by_socket_id(int socket){
     int i;
 
     for(i = 0; i < players_count; i++){
@@ -270,19 +277,6 @@ int get_player_array_position_by_socket_id(int socket){
     return -1;
 }
 
-int get_game_pos_in_array_by_player_id(int sock) {
-    int i;
-    for (i = 0; i < game_count; i++) {
-        if (games[i] != NULL) {
-            if ((games[i]->player1->socket) == sock || (games[i]->player2->socket) == sock) {
-                return i;
-            }
-
-        }
-
-        return -1;
-    }
-}
 
 void *socket_handler(void *skt) {
 
@@ -296,75 +290,55 @@ void *socket_handler(void *skt) {
     int attack_pos;
     char *nick = NULL;
     int socket_state = 0;
-    int player_position_in_array = -1;
+    int player_idx_in_array = -1;
     int game_idx = -1;
     int game_position_in_array = -1;
     int player1_pos = 0, player2_pos = 0;
     int game_player_idx = 0; // bude nabyvat hodnoty 1 pro playera 1, a 2 pro playera 2
     int is_valid = 0;
 
-    player *p1;          // about player
+    player *p1, *p2;          // about player
 
     message = "200|CONNECTED\n";
 
     write(sock, message, strlen(message));
 
     memset(client_message, 0, strlen(client_message) * sizeof(char));
+
     while ((read_size = recv(sock, client_message, 2000, 0)) > 0) {
 
 
         split_msg = split_message(client_message, &message_param_count);
 
         /**
-         *
+         * NICK
          * AFTER CONNECT -  create new player
-         * RECONNECT is
          */
+        if (strcmp(split_msg[1], "NICKNAME") == 0) { //Expected format - BTS|NICKNAME|<name>
 
+            nick = split_msg[2];
 
-        if (strcmp(split_msg[1], "CONNECT") == 0 && strcmp(split_msg[2], "NICK") == 0 &&
-            message_param_count == 4) { //Expected format - BTS|CONNECT|NICK|<name>
-
-            nick = split_msg[3];
+            /* kontrola formatu nicku */
+            if(strstr(split_msg[2], "\\") || strstr(split_msg[3], "|"))
+            {
+                write(sock, "401|NICKNAME|INVALID_NICKNAME\n", strlen("401|NICKNAME|INVALID_NICKNAME\n"));
+            }
 
             p1 = add_player_to_array(sock, nick);
 
-
             if (!p1) { // pokud bude hrac p1 null -> nefunkcni
-                write(sock, "406|NICKNAME|INVALID_NICK\n", strlen("406|NICKNAME|INVALID_NICK\n"));
+                write(sock, "401|NICKNAME|INVALID_NICKNAME\n", strlen("406|NICKNAME|INVALID_NICKNAME\n"));
                 close(sock);
-
 
             }
 
+            /* nastaveni stavu conn */
             player_change_state(p1, CONNECTED);
 
 
-            if (p1->in_game == IN_GAME) {
-                game_idx = get_game_pos_in_array_by_nickname(p1->nick, &game_player_idx);
-
-                // Kontrola aktualnich pozic hracu ve hre.
-                if (game_player_idx == 1) {
-                    /* Pokud reconnecting player je na tahu, nastav jeho socket na tah */
-                    if (games[game_idx]->player2->socket != games[game_idx]->player_turn_socket)
-                        games[game_idx]->player_turn_socket = sock;  // pokud je socket player2 roy
-
-                }
-
-
-                memset(server_answer, 0, 2000);
-
-                strcpy(server_answer, "201|GAME_STATE|RECONNECT|");
-                strcat(server_answer, get_current_board_state(games[game_idx], split_msg[3]));
-                strcat(server_answer, "\n");
-                printf("%s", server_answer);
-
-            } else {
-                /*                    2                     */
-                printf("Nickname acknowledged, player created!\n");
-                write(sock, "200|NICKNAME|OK\n", strlen("200|NICKNAME|OK\n"));
-                add_player_to_array(sock, split_msg[1]);
-            }
+            printf("Nickname acknowledged, player created!\n");
+            write(sock, "200|NICKNAME|OK\n", strlen("200|NICKNAME|OK\n"));
+            add_player_to_array(sock, split_msg[1]);
 
         } else {
             write(sock, "405|NICKNAME|INVALID_MESSAGE\n", strlen("405|NICKNAME|INVALID_MESSAGE\n"));
@@ -377,8 +351,7 @@ void *socket_handler(void *skt) {
         /**
          * DISCONNECT
          */
-        if (message_param_count > 4 && strcmp(split_msg[1], "DISCONNECT") == 0 &&
-            strcmp(split_msg[2], "NICK") == 0) { //Expected format - BTS|DISCONNECT|NICK|<name>
+        if (message_param_count > 4 && strcmp(split_msg[1], "DISCONNECT") == 0) { //Expected format - BTS|DISCONNECT
             nick = split_msg[3];
 
             if (sock == game_queue) {
@@ -388,7 +361,8 @@ void *socket_handler(void *skt) {
 
             write(sock, "200|DISCONNECT|OK\n", strlen("200|DISCONNECT|OK\n"));
             printf("200|DISCONNECT|OK\n");
-            players[get_player_array_position_by_socket_id(sock)] = NULL;
+
+            players[get_player_idxarr_by_socket_id(sock)] = NULL;
             close(sock);
 
         }
@@ -401,24 +375,45 @@ void *socket_handler(void *skt) {
         /**
          * FIND GAME
          */
-        if (message_param_count > 4 && strcmp(split_msg[1], "CONNECT") == 0 &&
-            strcmp(split_msg[2], "FIND_GAME") == 0 && p1 != NULL) { //Expected format - BTS|CONNECT|FIND_GAME|
+        if (strcmp(split_msg[1], "FIND_GAME") == 0 && p1 != NULL) { //Expected format - BTS|FIND_GAME|
 
 
-
-            /* Zjisti stav hráče */
+            /* Zjisti stav hrace */
             socket_state = p1->player_state;
 
             if (socket_state == CONNECTED) {
 
+
+                /* Pokud P1 je ve hre .. (aktualni hrac na tomto socketu)*/
+                if (p1->player_state == IN_GAME) {
+                    /* ziskani jeho pozice ve hre */
+                    game_idx = get_game_pos_in_array_by_nickname(p1->nick, &game_player_idx);
+
+                    /* Kontrola aktualnich pozic hracu ve hre. */
+                    if (game_player_idx == 1) {
+                        /* Pokud reconnecting player je na tahu, nastav jeho socket na tah */
+                        if (games[game_idx]->player2->socket != games[game_idx]->player_turn_socket)
+                            games[game_idx]->player_turn_socket = sock;  // pokud je socket player2 roy
+
+                    }
+
+
+                    memset(server_answer, 0, 2000);
+
+                    strcpy(server_answer, "201|GAME_STATE|RECONNECT|");
+                    strcat(server_answer, get_current_board_state(games[game_idx], split_msg[3]));
+                    strcat(server_answer, "\n");
+                    printf("%s", server_answer);
+
+                }
                 /* Pokud je fronta prázdná, přidej socket do fronty */
-                if (game_queue == -1) {
+                else if (game_queue == -1) {
                     game_queue = sock;
                     printf("Player added to queue: %d\n", game_queue);
                     player_change_state(p1, IN_QUEUE);
                     write(sock, "201|ADDED_TO_QUEUE\n", strlen("201|ADDED_TO_QUEUE\n"));
 
-                    printf("Player %d state: %d\n", sock, players[player_position_in_array]->player_state);
+                    printf("Player %d state: %d\n", sock, players[player_idx_in_array]->player_state);
                 } else {
                     /**
                      * New game
@@ -426,12 +421,14 @@ void *socket_handler(void *skt) {
                     printf("New game created!\n");
                     /* Create new game */
                     /* Change player state to STATE_IN_GAME */
-                    player_position_in_array = get_player_array_position_by_socket_id(sock);
-                    player_change_state(players[player_position_in_array], IN_GAME);
-                    player_position_in_array = get_player_array_position_by_socket_id(game_queue);
-                    player_change_state(players[player_position_in_array], IN_GAME);
+
+                    player_change_state(p1, IN_GAME);
+                    player_idx_in_array = get_player_idxarr_by_socket_id(game_queue);
+                    p2 = players[player_idx_in_array];
+                    player_change_state(p2, IN_GAME);
+
                     /* Create game */
-                    game_position_in_array = add_game_to_array(sock, game_queue);
+                    game_position_in_array = add_game_to_array(p1, p2);
 
                     strcpy(server_answer, "200|FIND_GAME|");
                     strcat(server_answer, games[game_position_in_array]->board2->items);
@@ -481,10 +478,8 @@ void *socket_handler(void *skt) {
          * ATTACK
          *
          */
-
-        if (message_param_count > 6 || strcmp(split_msg[1], "ATTACK") == 0 &&
-                                       strcmp(split_msg[2], "POSITION") ==
-                                       0) { //Expected format - BTS|ATTACK|POSITION|<cislo>
+        if (strcmp(split_msg[1], "ATTACK") == 0 &&strcmp(split_msg[2], "POSITION") ==0) {
+            //Expected format - BTS|ATTACK|POSITION|<cislo(znak)>
 
             socket_state = get_player_state_by_socket_id(sock);
             if (socket_state != IN_GAME || socket_state == -1) {
@@ -494,7 +489,7 @@ void *socket_handler(void *skt) {
                 strcpy(server_answer, "402|ATTACK|NOT_IN_GAME\n");
                 write(sock, server_answer, strlen(server_answer));
             } else {
-                game_idx = get_game_pos_in_array_by_player_id(sock);
+                game_idx = get_game_pos_by_player_id(sock);
 
                 if (games[game_idx]->player_turn_socket == sock) {
                     /* Přidat logiku na tah */
@@ -510,25 +505,25 @@ void *socket_handler(void *skt) {
                             snprintf(server_answer, 2000, "%s%d\n", attack_pos_buffer, attack_pos);
                             printf("Message sent: %s", server_answer);
 
-                            if (games[game_idx]->player1->socket == sock) {
+                            if (p1->socket == sock) {
                                 /* 				ATTACK|YOU                */
-                                write(games[game_idx]->player1->socket, server_answer, strlen(server_answer));
+                                write(p1->socket, server_answer, strlen(server_answer));
 
 
                                 /*              ATTACK|ENEMY              */
                                 strcpy(attack_pos_buffer, "201|ATTACK|ENEMY|SHIP_HIT|");
                                 snprintf(server_answer, 2000, "%s%d\n", attack_pos_buffer, attack_pos);
-                                write(games[game_idx]->player2->socket, server_answer, strlen(server_answer));
+                                write(p2->socket, server_answer, strlen(server_answer));
 
                             } else {
                                 /* 				ATTACK|YOU                */
-                                write(games[game_idx]->player2->socket, server_answer, strlen(server_answer));
+                                write(p2->socket, server_answer, strlen(server_answer));
 
 
                                 /*              ATTACK|ENEMY              */
                                 strcpy(attack_pos_buffer, "201|ATTACK|ENEMY|SHIP_HIT|");
                                 snprintf(server_answer, 2000, "%s%d\n", attack_pos_buffer, attack_pos);
-                                write(games[game_idx]->player1->socket, server_answer, strlen(server_answer));
+                                write(p1->socket, server_answer, strlen(server_answer));
 
                             }
 
@@ -538,18 +533,15 @@ void *socket_handler(void *skt) {
                                 strcpy(server_answer, "200|GAME_STATE|GAME_OVER\n");
 
 
-                                write(games[game_idx]->player1->socket, server_answer, strlen(server_answer));
-                                write(games[game_idx]->player2->socket, server_answer, strlen(server_answer));
+                                write(p1->socket, server_answer, strlen(server_answer));
+                                write(p2->socket, server_answer, strlen(server_answer));
 
                                 /*     SET PLAYERS STATE TO CONNECTED	   */
-                                player1_pos = get_player_array_position_by_socket_id(
-                                        games[game_idx]->player1->socket);
-                                player2_pos = get_player_array_position_by_socket_id(
-                                        games[game_idx]->player2->socket);
-                                players[player1_pos]->player_state = CONNECTED;
-                                players[player2_pos]->player_state = CONNECTED;
+
+                                p1->player_state = CONNECTED;
+                                p2->player_state = CONNECTED;
                                 /*         REMOVE GAME FROM ARRAY          */
-                                free_game(&games[game_idx]);
+                                game_free(&games[game_idx]);
                             }
                         } else {
                             /* NO_HIT */
@@ -588,15 +580,13 @@ void *socket_handler(void *skt) {
 
 
                         /*             ATTACK BAD         */
-                        /*                4               */
                         printf("Player tried to attacked already attacked spot\n");
                         strcpy(server_answer, "400|ATTACK|YOU|ALREADY_ATTACKED\n");
                         write(sock, server_answer, strlen(server_answer));
 
                     }
                 } else {
-                    /*      Pokud ne, fuck off        */
-                    /*                2               */
+                    /*      Pokud ne, chyba        */
                     strcpy(server_answer, "404|ATTACK|YOU|NOT_YOUR_TURN\n");
                     printf("Player tried to fuck the system!\n");
                     write(sock, server_answer, strlen(server_answer));
@@ -614,8 +604,8 @@ void *socket_handler(void *skt) {
             game_queue = -1;
         }
         /* Check if disconnected player was in game */
-        if(players[get_player_array_position_by_socket_id(sock)]->player_state == IN_GAME){
-            if(sock == games[get_game_pos_by_player_id(sock)]->player1){
+        if(players[get_player_idxarr_by_socket_id(sock)]->player_state == IN_GAME){
+            if(sock == games[get_game_pos_by_player_id(sock)]->player1->socket){
                 write(games[get_game_pos_by_player_id(sock)]->player2->socket, "409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n", strlen("409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n"));
             }
             else
@@ -624,7 +614,7 @@ void *socket_handler(void *skt) {
             }
 
         }
-        players[get_player_array_position_by_socket_id(sock)]->player_state = CONNECTED;
+        players[get_player_idxarr_by_socket_id(sock)]->player_state = CONNECTED;
         fflush(stdout);
     }
     else if(read_size == -1)
@@ -634,15 +624,15 @@ void *socket_handler(void *skt) {
             game_queue = -1;
             printf("Removing disconnected client from queue!\nGame queue: %d\n", game_queue);
         }
-        players[get_player_array_position_by_socket_id(sock)]->player_state = CONNECTED;
-        if(get_player_state_by_socket_id(sock) == IN_GAME){
-
-            if(sock == games[get_game_pos_by_player_id(sock)]->player1){
-                write(games[get_game_pos_by_player_id(sock)]->player2->socket, "409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n", strlen("409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n"));
+        players[get_player_idxarr_by_socket_id(sock)]->player_state = CONNECTED;
+        if(get_player_state_by_socket_id(sock) == IN_GAME)
+        {
+            if(p1->socket){
+                write(p2->socket, "409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n", strlen("409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n"));
             }
             else
             {
-                write(games[get_game_pos_by_player_id(sock)]->player1->socket, "409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n", strlen("409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n"));
+                write(p1->socket, "409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n", strlen("409|GAME_STATE|GAME_ENDED|OPPONENT_DISCONNECTED\n"));
             }
         }
     }

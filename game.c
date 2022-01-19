@@ -58,3 +58,12 @@ char player_turn(game *game, int player, uint target){
         return '0';
     }
 }
+
+
+void game_free(game **poor) {
+    board_free(&(*poor)->board1);
+    board_free(&(*poor)->board2);
+    free(*poor);
+    *poor = NULL;
+
+}

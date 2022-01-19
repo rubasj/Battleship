@@ -6,18 +6,20 @@ import java.net.Socket;
 
 public class Reader implements Runnable
 {
-    private BufferedReader reader = null;
-    private CommunicationHandler ch = null;
+
     private Window window = null;
     private Client client = null;
-    private Socket s;
-    public Reader(Socket s, CommunicationHandler ch, Window window, Client client){
-        this.ch = ch;
+    private BufferedReader reader = null;
+    private CommunicationHandler handler = null;
+
+    private Socket socket;
+    public Reader(Socket socket, Window window, CommunicationHandler handler, Client client){
+        this.handler = handler;
         this.client = client;
         this.window = window;
-        this.s = s;
+        this.socket = socket;
         try {
-            reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (Exception e) {
             //TODO: handle exception
         }
@@ -26,41 +28,33 @@ public class Reader implements Runnable
     @Override
     public void run(){
         String message = null;
-        String []detokenized = null;
+        String []splited = null;
         while(true){
             boolean is_valid = false;
             try {
                 message = reader.readLine();
                 if(message != null){
-                    System.out.println("Message received!");
+                    System.out.println("Message accepted!");
                     System.out.println(message);
                     window.infoLB.setText(message);
-                    detokenized = ch.splitMessage(message);
+                    splited = handler.splitMessage(message);
                     
-                    /*                                             */
-                    /*                                             */
-                    /*                                             */
-                    /*                                             */
+
                     /*              MESSAGE DECODER                */
-                    /*                                             */
-                    /*                                             */
-                    /*                                             */
-                    /*                                             */
-                    /*                                             */
-                    if(detokenized.length > 1){
-                        if(detokenized[1].equalsIgnoreCase("ATTACK"))
+                    if(splited.length > 1){
+                        if(splited[1].equalsIgnoreCase("ATTACK"))
                         {
-                            if(!detokenized[2].equalsIgnoreCase("NOT_IN_GAME"))
+                            if(!splited[2].equalsIgnoreCase("NOT_IN_GAME"))
                             {
-                                if(detokenized[2].equalsIgnoreCase("YOU"))
+                                if(splited[2].equalsIgnoreCase("YOU"))
                                 {
-                                    if(detokenized[3].equalsIgnoreCase("NOT_YOUR_TURN") || detokenized[3].equalsIgnoreCase("ALREADY_ATTACKED"))
+                                    if(splited[3].equalsIgnoreCase("ALREADY_ATTACKED" ) || splited[3].equalsIgnoreCase("NOT_YOUR_TURN"))
                                     {
                                         is_valid = true;
                                     }
                                     else{
-                                        int position = Integer.parseInt(detokenized[4]);
-                                        if(detokenized[3].equalsIgnoreCase("NO_HIT")){
+                                        int position = Integer.parseInt(splited[4]);
+                                        if(splited[3].equalsIgnoreCase("NO_HIT")){
                                         window.opponentBTs[position].setBackground(Color.GREEN);
                                         }
                                         else{
@@ -71,8 +65,8 @@ public class Reader implements Runnable
     
                                 }
                                 else{
-                                    int position = Integer.parseInt(detokenized[4]);
-                                    if(detokenized[3].equalsIgnoreCase("NO_HIT")){
+                                    int position = Integer.parseInt(splited[4]);
+                                    if(splited[3].equalsIgnoreCase("NO_HIT")){
                                         window.yourBTs[position].setBackground(Color.GREEN);
                                     }
                                     else{
@@ -83,9 +77,9 @@ public class Reader implements Runnable
                             }
                             is_valid = true;
                         }
-                        if(detokenized[1].equalsIgnoreCase("NICKNAME"))
+                        if(splited[1].equalsIgnoreCase("NICKNAME"))
                         {
-                            if(detokenized[2].equalsIgnoreCase("OK"))
+                            if(splited[2].equalsIgnoreCase("OK"))
                             {
                                 window.yourBTsPanel.removeAll();
                                 window.opponentBTsPanel.removeAll();
@@ -93,23 +87,23 @@ public class Reader implements Runnable
                                 window.firstWindow.revalidate();
                                 is_valid = true;
                             }
-                            if(detokenized[2].equalsIgnoreCase("NICKNAME_ALREADY_USED"))
+                            if(splited[2].equalsIgnoreCase("NICKNAME_ALREADY_USED"))
                             {
                                 window.firstWindow.setContentPane(window.loginPanel);
-                                window.connection_info_label.setText("Nickname already in use!");
+                                window.connectionInfoLB.setText("Nickname already in use!");
                                 window.firstWindow.revalidate();
                                 is_valid = true;
                             }
                         }
 
-                        if(detokenized[1].equalsIgnoreCase("FIND_GAME")){
+                        if(splited[1].equalsIgnoreCase("FIND_GAME")){
                             /* CREATE BOARD */
                             try {
-                                System.out.println("NEW GAME FOUND" + detokenized[2]);
+                                System.out.println("NEW GAME FOUND" + splited[2]);
                                 /* CREATE BUTTONS */
                                 window.yourBTsPanel.removeAll();
                                 window.opponentBTsPanel.removeAll();
-                                window.yourBTs = window.initBTsInBoard(detokenized[2], true);
+                                window.yourBTs = window.initBTsInBoard(splited[2], true);
                                 window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
                                 window.opponentBTs = window.initBTsInBoard("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", false);
                                 window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
@@ -124,9 +118,9 @@ public class Reader implements Runnable
                         }
     
     
-                        if(detokenized[1].equalsIgnoreCase("GAME_STATE")){
+                        if(splited[1].equalsIgnoreCase("GAME_STATE")){
                             System.out.println("Game state received");
-                            if(detokenized[2].equalsIgnoreCase("RECONNECT"))
+                            if(splited[2].equalsIgnoreCase("RECONNECT"))
                             {
                                 try {
                                     System.out.println("RECONNECTING TO EXISTING GAME");
@@ -135,9 +129,9 @@ public class Reader implements Runnable
                                     window.firstWindow.revalidate();
                                     window.yourBTsPanel.removeAll();
                                     window.opponentBTsPanel.removeAll();
-                                    window.yourBTs = window.initBTsInBoard(detokenized[3], true);
+                                    window.yourBTs = window.initBTsInBoard(splited[3], true);
                                     window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
-                                    window.opponentBTs = window.initBTsInBoard(detokenized[4], false);
+                                    window.opponentBTs = window.initBTsInBoard(splited[4], false);
                                     window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
                                     System.out.println("All buttons initiated");
                                     window.yourBTsPanel.revalidate();
@@ -148,12 +142,12 @@ public class Reader implements Runnable
                                     //TODO: handle exception
                                 }
                             }
-                            if(detokenized[2].equalsIgnoreCase("GAME_ENDED"))
+                            if(splited[2].equalsIgnoreCase("GAME_ENDED"))
                             {
                                 System.out.println("Game ended received");
-                                if(detokenized[3].equalsIgnoreCase("OPPONENT_DISCONNECTED"))
+                                if(splited[3].equalsIgnoreCase("OPPONENT_DISCONNECTED"))
                                 {
-                                    System.out.println("Opponent disconnected received");
+                                    System.out.println("Opponent disconnected");
                                     window.yourBTsPanel.removeAll();
                                     window.opponentBTsPanel.removeAll();
                                     window.yourBTsPanel.revalidate();
@@ -162,7 +156,7 @@ public class Reader implements Runnable
                             }
                             is_valid = true;
                         }
-                        if(detokenized[1].equalsIgnoreCase("DISCONNECT")){
+                        if(splited[1].equalsIgnoreCase("DISCONNECT")){
                             client.endConnection();
                             window.firstWindow.setContentPane(window.loginPanel);
                             window.firstWindow.revalidate();
@@ -174,11 +168,11 @@ public class Reader implements Runnable
             }
             catch (IOException e)
             {
-                window.connection_info_label.setText("Invalid server!");
+                window.connectionInfoLB.setText("Invalid server!");
             }
             if(!is_valid){
                 try {
-                    s.close();
+                    socket.close();
                 } catch (Exception e) {
                     //TODO: handle exception
                 }
@@ -191,6 +185,7 @@ public class Reader implements Runnable
 		try {
 			reader.close();
 		} catch (IOException e) {
+
 		}
 	}
 }

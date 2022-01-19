@@ -15,8 +15,6 @@ player *player_create(int socket, char *nick) {
     temp->socket = socket;
     temp->nick = (char *)malloc(sizeof(char *) * strlen(nick));
 
-
-    temp->game_id = -1;
     temp->player_id = -1;
 
     temp->player_state = CONNECTED;
@@ -39,9 +37,7 @@ int player_is_in_game(player *player){
     return 1 ;
 }
 
-void change_game_stat(player *player, int game_stat){
-    player->game_on_turn = game_stat;
-}
+
 
 void free_player(player **player){
     free(*player);

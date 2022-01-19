@@ -21,13 +21,9 @@ typedef struct _player {
     int socket;
     int player_state;
     char *nick;
-    int in_game;
 
-    int game_id;
     int player_id;
 
-
-    int game_on_turn;
 }player;
 
 player *player_create(int socket, char *nick);

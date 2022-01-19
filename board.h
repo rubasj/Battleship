@@ -30,7 +30,7 @@ board *board_create();
 void board_fill(board *bd);
 void board_set(board *bd);
 int is_hit(board *board, size_t pos);
-
+void board_free(board **poor);
 
 
 #endif //BATTLESHIP_BOARD_H

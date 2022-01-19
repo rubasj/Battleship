@@ -11,12 +11,13 @@ public class Window {
     /**
      * PANELS
      */
+    public JPanel yourBTsPanel;
+    public JPanel opponentBTsPanel;
     public JPanel loginPanel;
     public JPanel gamePanel;
     public JPanel infoPanel;
     public JPanel controlPanel;
-    public JPanel yourBTsPanel;
-    public JPanel opponentBTsPanel;
+
 
     /**
      * Game Boards
@@ -32,7 +33,7 @@ public class Window {
      * Labels
      */
     public JLabel infoLB;
-    public JLabel connection_info_label;
+    public JLabel connectionInfoLB;
 
     public final Client client;
     public final CommunicationHandler handler;
@@ -40,8 +41,6 @@ public class Window {
 
     /**
      * Set gui
-     * @param client
-     * @param handler
      */
     public Window(Client client, CommunicationHandler handler){
         this.client = client;
@@ -53,12 +52,12 @@ public class Window {
         JLabel portLB = new JLabel("Port: ");
         JLabel nicknameLabel = new JLabel("Nick: ");
 
-
-        final JTextField ipText = new JTextField("");
-        final JTextField portText = new JTextField("");
         final JTextField nicknameText = new JTextField("");
+        final JTextField ipText = new JTextField("147.228.63.10");
+        final JTextField portText = new JTextField("");
 
-        JButton checkNickBT = new JButton("SEND NICK");
+
+
         JButton connBT = new JButton("CONNECT");
 
 
@@ -66,7 +65,7 @@ public class Window {
         ipText.setPreferredSize(new Dimension(100,30));
         nicknameText.setPreferredSize(new Dimension(100,30));
         portText.setPreferredSize(new Dimension(100,30));
-        connection_info_label = new JLabel();
+        connectionInfoLB = new JLabel();
 
 
 
@@ -76,9 +75,8 @@ public class Window {
         loginPanel.add(portText);
         loginPanel.add(nicknameLabel);
         loginPanel.add(nicknameText);
-        loginPanel.add(checkNickBT);
         loginPanel.add(connBT);
-        loginPanel.add(connection_info_label);
+        loginPanel.add(connectionInfoLB);
 
 
         this.client.setGUI(this);
@@ -95,24 +93,22 @@ public class Window {
                 } catch (Exception eee) {
                     //TODO: handle exception
                 }
-        });
+            String nicknameString = nicknameText.getText();
+            try {
+                if(!this.handler.isNicknameOK(nicknameString)){
+                    connectionInfoLB.setText("Invalid nickname! Enter only letters or numbers!");
+                }
+                else{
+                    this.client.sendMessage("NICKNAME|"+nicknameString+"\n");
 
-        checkNickBT.addActionListener(e -> {
-                String nicknameString = nicknameText.getText();
-                try {
-                    if(!this.handler.isNicknameOK(nicknameString)){
-                        connection_info_label.setText("Invalid nickname! Enter only letters or numbers!");
-                    }
-                    else{
-                        this.client.sendMessage("NICKNAME|"+nicknameString+"\n");
-
-                    }
-                    
-                } catch (Exception ee) {
-                    //TODO: handle exception
                 }
 
+            } catch (Exception ee) {
+                //TODO: handle exception
+            }
+
         });
+
 
         firstWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         firstWindow.setPreferredSize(new Dimension(500,500));
@@ -171,9 +167,8 @@ public class Window {
 
     /**
      * Set buttons
-     * @param board
-     * @param isAlly
-     * @return
+
+     * @return buttons
      */
     public JButton[] initBTsInBoard(String board, boolean isAlly){
         JButton [] buttons = new JButton[100];
@@ -224,18 +219,7 @@ public class Window {
         return buttons;
     }
 
-    private void setTextBT(JButton button, int i){
-        final JButton bt = button;
-        final int i1 = i;
 
-        bt.addActionListener(e-> {
-
-            client.sendMessage("ATTACK|" + i1 + "\n");
-            bt.setText("");
-
-        });
-        button = bt;
-    }
 
     public void addButtonsToBoard(JPanel panel, JButton [] buttons){
         for(int i = 0; i < 100; i++){
@@ -243,5 +227,17 @@ public class Window {
         }
     }
 
+    private void setTextBT(JButton button, int i){
+        final int i1 = i;
+        final JButton bt = button;
+
+        bt.addActionListener(e-> {
+
+            client.sendMessage("ATTACK|POSITION|" + i1 + "\n");
+            bt.setText("");
+
+        });
+        button = bt;
+    }
 
 }
