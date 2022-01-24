@@ -3,7 +3,8 @@
 
 #include "player.h"
 #include "game.h"
-#include "board.h"
+#include "header.h"
+
 
 #define MAX_PLAYERS 20
 

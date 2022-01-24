@@ -2,7 +2,6 @@ file(REMOVE_RECURSE
   "Battleship.exe"
   "Battleship.exe.manifest"
   "Battleship.pdb"
-  "CMakeFiles/Battleship.dir/board.c.obj"
   "CMakeFiles/Battleship.dir/game.c.obj"
   "CMakeFiles/Battleship.dir/main.c.obj"
   "CMakeFiles/Battleship.dir/manager.c.obj"

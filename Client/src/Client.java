@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 
-public class Player
+public class Client
 { 
 
     public Reader reader = null;
@@ -15,7 +15,7 @@ public class Player
 
 
 
-    public Player(CommunicationHandler ch){
+    public Client(CommunicationHandler ch){
             this.ch = ch;
     }
 
@@ -67,7 +67,7 @@ public class Player
 
     public void sendMessage(String message){
         try {
-            writer.write("BTS|"+message);
+            writer.write("[" + message + "]");
             writer.flush();
         } catch (Exception e) {
 

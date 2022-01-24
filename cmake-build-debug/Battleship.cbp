@@ -74,12 +74,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/board.c">
-			<Option target="Battleship"/>
-		</Unit>
-		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/board.h">
-			<Option target="Battleship"/>
-		</Unit>
 		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/game.c">
 			<Option target="Battleship"/>
 		</Unit>

@@ -3,7 +3,6 @@
 
 #include "player.h"
 #include "header.h"
-#include "board.h"
 #define MAX_GAMES 8
 
 
@@ -87,5 +86,29 @@ void check_game_end(Players **array_clients, game *this_game, games **all_games)
 void remove_game(Players **pls, games **all_games, int game_ID);
 
 
+#define BOARD_SIZE 10
+#define SHIP_COUNT 17
+typedef unsigned int uint;
+
+#define EMPTY_ITEM '0'
+#define SHIP_ITEM '1'
+#define HIT_ITEM '3'
+#define MISSED_ITEM '2'
+#define INVALID_HIT '4'
+
+
+
+board *board_create();
+void board_fill(board *bd);
+void board_set(board *bd);
+char is_hit(board *board, size_t pos);
+void board_free(board **poor);
+
+/**
+ * For creating opponent array without ships.
+ * @param bd
+ * @return
+ */
+char* get_reduced_items(board *bd); // for opponent
 
 #endif 

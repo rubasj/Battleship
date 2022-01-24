@@ -8,7 +8,6 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/board.c" "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/cmake-build-debug/CMakeFiles/Battleship.dir/board.c.obj"
   "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/game.c" "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/cmake-build-debug/CMakeFiles/Battleship.dir/game.c.obj"
   "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/main.c" "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/cmake-build-debug/CMakeFiles/Battleship.dir/main.c.obj"
   "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/manager.c" "E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/cmake-build-debug/CMakeFiles/Battleship.dir/manager.c.obj"

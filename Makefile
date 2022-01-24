@@ -9,9 +9,6 @@ CCFLAGS = -g
 $(BIN): $(OBJ)
 	$(CC) $(OBJ) -o $(BIN) -lpthread
 
-board.o: board.c
-	$(CC) -c board.c $(CCFLAGS)
-
 game.o: game.c
 	$(CC) -c game.c $(CCFLAGS)
 

@@ -128,30 +128,6 @@ Battleship/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Battleship.dir\build.make CMakeFiles/Battleship.dir/build
 .PHONY : Battleship/fast
 
-board.obj: board.c.obj
-.PHONY : board.obj
-
-# target to build an object file
-board.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Battleship.dir\build.make CMakeFiles/Battleship.dir/board.c.obj
-.PHONY : board.c.obj
-
-board.i: board.c.i
-.PHONY : board.i
-
-# target to preprocess a source file
-board.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Battleship.dir\build.make CMakeFiles/Battleship.dir/board.c.i
-.PHONY : board.c.i
-
-board.s: board.c.s
-.PHONY : board.s
-
-# target to generate assembly for a file
-board.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Battleship.dir\build.make CMakeFiles/Battleship.dir/board.c.s
-.PHONY : board.c.s
-
 game.obj: game.c.obj
 .PHONY : game.obj
 
@@ -257,9 +233,6 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... Battleship
-	@echo ... board.obj
-	@echo ... board.i
-	@echo ... board.s
 	@echo ... game.obj
 	@echo ... game.i
 	@echo ... game.s

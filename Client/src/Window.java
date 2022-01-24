@@ -35,14 +35,14 @@ public class Window {
     public JLabel infoLB;
     public JLabel connectionInfoLB;
 
-    public final Player Player;
+    public final Client Player;
     public final CommunicationHandler handler;
 
 
     /**
      * Set gui
      */
-    public Window(Player Player, CommunicationHandler handler){
+    public Window(Client Player, CommunicationHandler handler){
         this.Player = Player;
         this.handler = handler;
 

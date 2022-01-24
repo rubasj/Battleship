@@ -8,12 +8,12 @@ public class Reader implements Runnable
 {
 
     private Window window = null;
-    private Player Player = null;
+    private Client Player = null;
     private BufferedReader reader = null;
     private CommunicationHandler handler = null;
 
     private Socket socket;
-    public Reader(Socket socket, Window window, CommunicationHandler handler, Player Player){
+    public Reader(Socket socket, Window window, CommunicationHandler handler, Client Player){
         this.handler = handler;
         this.Player = Player;
         this.window = window;
