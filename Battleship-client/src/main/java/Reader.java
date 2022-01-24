@@ -8,14 +8,14 @@ public class Reader implements Runnable
 {
 
     private Window window = null;
-    private Client client = null;
+    private Player Player = null;
     private BufferedReader reader = null;
     private CommunicationHandler handler = null;
 
     private Socket socket;
-    public Reader(Socket socket, Window window, CommunicationHandler handler, Client client){
+    public Reader(Socket socket, Window window, CommunicationHandler handler, Player Player){
         this.handler = handler;
-        this.client = client;
+        this.Player = Player;
         this.window = window;
         this.socket = socket;
         try {
@@ -157,7 +157,7 @@ public class Reader implements Runnable
                             is_valid = true;
                         }
                         if(splited[1].equalsIgnoreCase("DISCONNECT")){
-                            client.endConnection();
+                            Player.endConnection();
                             window.firstWindow.setContentPane(window.loginPanel);
                             window.firstWindow.revalidate();
                         }

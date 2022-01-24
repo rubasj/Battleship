@@ -14,9 +14,14 @@
 
 
 #define BOARD_SIZE 10
-#define SHIP_COUNT 12
+#define SHIP_COUNT 17
 typedef unsigned int uint;
 
+#define EMPTY_ITEM '0'
+#define SHIP_ITEM '1'
+#define HIT_ITEM '3'
+#define MISSED_ITEM '2'
+#define INVALID_HIT '4'
 
 typedef struct _board {
     size_t rows;
@@ -29,8 +34,15 @@ typedef struct _board {
 board *board_create();
 void board_fill(board *bd);
 void board_set(board *bd);
-int is_hit(board *board, size_t pos);
+char is_hit(board *board, size_t pos);
 void board_free(board **poor);
+
+/**
+ * For creating opponent array without ships.
+ * @param bd
+ * @return
+ */
+char* get_reduced_items(board *bd); // for opponent
 
 
 #endif //BATTLESHIP_BOARD_H

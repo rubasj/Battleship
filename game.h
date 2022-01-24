@@ -1,32 +1,91 @@
-//
-// Created by janru on 11.01.2022.
-//
+#ifndef GAME
+#define GAME
 
-#ifndef BATTLESHIP_GAME_H
-#define BATTLESHIP_GAME_H
-
-#include "board.h"
 #include "player.h"
-
-#define GAME_OK 0
-#define GAME_WAIT 1
-
-
-typedef struct game {
-    board *board1;
-    board *board2;
-    player *player1;
-    player *player2; // TODO Check pointers for player in free game
-
-    int game_id;
-    int player_turn_socket;
-    int game_state;
-}game;
-#endif //BATTLESHIP_GAME_H
+#include "header.h"
+#include "board.h"
+#define MAX_GAMES 8
 
 
-game *init_game(board *b1, board *b2, player *p1, player *p2, int game_id);
-char player_turn(game *game, int player, uint target);
-void game_free(game **game);
-int is_game_over(game *game);
-char *get_current_board_state(game *game, char *nickname);
+/** ***************************************
+ * @brief Create wanna_play
+ * @param wanna_plays
+ * *************************************** 
+ */
+void create_wanna_play(wanna_play **wanna_plays);
+
+/** ***************************************
+ * @brief Add socket to wanna_play
+ * @param wanna_plays 
+ * @param socket_ID 
+ *  ***************************************
+ */
+void add_wanna_play(wanna_play **wanna_plays, int socket_ID);
+
+/** ***************************************
+ * @brief Remove Player from wanna plays
+ * @param wanna_plays 
+ * @param socket_ID 
+ *  ***************************************
+ */
+void remove_wanna_play(wanna_play **wanna_plays, int socket_ID);
+
+/** ***************************************
+ * @brief Create a games object
+ * @param all_games 
+ *  ***************************************
+ */
+void create_games(games **all_games);
+
+/** ***************************************
+ * @brief Create a game object
+ * @param all_games 
+ * @param name_1 
+ * @param name_2 
+ *  ***************************************
+ */
+game *create_game(games **all_games, char *name_1, char *name_2);
+
+/** ***************************************
+ * @brief prepares game
+ * @param game
+ * @param name_1 
+ * @param name_2 
+ *  ***************************************
+ */
+void init_game(game **game, char *name_1, char *name_2);
+
+
+/** ***************************************
+ * @brief Get the game by Player name object
+ * @param array_players
+ * @param all_games 
+ * @param cl 
+ * @return game* 
+ *  ***************************************
+ */
+game *get_game_by_player_name(Players *array_players, games **all_games, Player **cl);
+
+
+
+/** ***************************************
+ * @brief Checks if game is ended
+ * @param array_clients 
+ * @param this_game 
+ *  ***************************************
+ */
+void check_game_end(Players **array_clients, game *this_game, games **all_games);
+
+
+/** ***************************************
+ * @brief remove game from game structure
+ * @param pls
+ * @param all_games 
+ * @param game_ID 
+ *  ***************************************
+ */
+void remove_game(Players **pls, games **all_games, int game_ID);
+
+
+
+#endif 

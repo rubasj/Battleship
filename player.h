@@ -7,29 +7,78 @@
 
 #include <string.h>
 #include <stdlib.h>
-
-#define DISCONNECTED -1
-#define IN_QUEUE 2
-#define CONNECTED 1 // hrac je pripojen
-#define IN_GAME 3
+#include <pthread.h>
+#include <stdio.h>
 
 
-#define ON_TURN 1
-#define WAIT_ON_TURN 0
+#include "header.h"
 
-typedef struct _player {
-    int socket;
-    int player_state;
-    char *nick;
 
-    int player_id;
 
-}player;
+/** ***************************************
+ * @brief Create a Players object
+ * @param array_players
+ *  ***************************************
+ */
+void players_create(Players **array_players);
 
-player *player_create(int socket, char *nick);
-void player_change_state(player *player, int state);
-int player_get_state(player *player);
-int player_is_in_game(player *player);
-void change_game_stat(player *player, int game_stat);
-void free_player(player **player);
+/** ***************************************
+ * @brief Create a Player object
+ * @param pl
+ * @param name
+ * @param socket_ID
+ *  ***************************************
+ */
+void player_create(Player **pl, char *name, int socket_ID);
+
+/** ***************************************
+ * @brief Get the Player by socket ID
+ * @param array_players
+ * @param socket_ID
+ * @return Player*
+ *  ***************************************
+ */
+Player *get_player_by_socket_ID(Players *array_players, int socket_ID);
+
+/** ***************************************
+ * @brief Get the Player by name
+ * @param array_players
+ * @param name
+ * @return Player*
+ *  ***************************************
+ */
+Player *get_player_by_name(Players *array_players, char *name);
+
+/** ***************************************
+ * @brief check if name exists
+ * @param array_players
+ * @param name
+ * @return int
+ *  ***************************************
+ */
+int player_name_exists (Players *array_players, char *name);
+
+/** ***************************************
+ * @brief add Player to structure
+ * @param array_players
+ * @param name
+ * @param socket_ID
+ *  ***************************************
+ */
+void player_add(Players **array_players, char *name, int socket_ID);
+
+/** ***************************************
+ * @brief remove Player from the Players structure
+ * @param array_player
+ * @param socket_ID
+ */
+void player_remove(Players **array_player, int socket_ID);
+
+/** ***************************************
+ * @brief provide Player reconnect in the case of shor-term unavailability
+ * @param array_players
+ * @param socket_ID
+ *  ***************************************
+ */
+void player_reconnect(Players **array_players, int socketID, games **all_games);
 #endif //BATTLESHIP_PLAYER_H

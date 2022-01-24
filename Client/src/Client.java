@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 
-public class Client  
+public class Player
 { 
 
     public Reader reader = null;
@@ -15,7 +15,7 @@ public class Client
 
 
 
-    public Client(CommunicationHandler ch){
+    public Player(CommunicationHandler ch){
             this.ch = ch;
     }
 
@@ -38,7 +38,7 @@ public class Client
             threadReader = new Thread(reader);
             threadReader.start();
             writer = new PrintWriter(new OutputStreamWriter(skt.getOutputStream()));
-            System.out.println("Client socket created!");
+            System.out.println("Player socket created!");
         }catch(Exception e){ 
             window.connectionInfoLB.setText("Invalid connection parameters!");;
             System.out.println(e);

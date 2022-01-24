@@ -1,9 +1,9 @@
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        Client client = null;
+        Player Player = null;
         CommunicationHandler ch = new CommunicationHandler();
-        client = new Client(ch);
-        Window window = new Window(client, ch);
+        Player = new Player(ch);
+        Window window = new Window(Player, ch);
     }
 }

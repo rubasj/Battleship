@@ -1,3 +1,3 @@
-C:\Users\janru\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\202.7660.37\bin\cmake\win\bin\cmake.exe -E rm -f CMakeFiles\Battleship.dir/objects.a
+"C:\Program Files\JetBrains\CLion 2021.2.3\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\Battleship.dir/objects.a
 C:\PROGRA~2\MINGW-~1\I686-8~1.0-P\mingw32\bin\ar.exe cr CMakeFiles\Battleship.dir/objects.a @CMakeFiles\Battleship.dir\objects1.rsp
-C:\PROGRA~2\MINGW-~1\I686-8~1.0-P\mingw32\bin\gcc.exe -g   -Wl,--whole-archive CMakeFiles\Battleship.dir/objects.a -Wl,--no-whole-archive  -o Battleship.exe -Wl,--out-implib,libBattleship.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Battleship.dir\linklibs.rsp
+C:\PROGRA~2\MINGW-~1\I686-8~1.0-P\mingw32\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\Battleship.dir/objects.a -Wl,--no-whole-archive -o Battleship.exe -Wl,--out-implib,libBattleship.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Battleship.dir\linklibs.rsp

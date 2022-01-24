@@ -89,6 +89,12 @@
 		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/main.c">
 			<Option target="Battleship"/>
 		</Unit>
+		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/manager.c">
+			<Option target="Battleship"/>
+		</Unit>
+		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/manager.h">
+			<Option target="Battleship"/>
+		</Unit>
 		<Unit filename="E:/SKOLA_ZCU/4. rocnik/KIV_UPS/Battleship/player.c">
 			<Option target="Battleship"/>
 		</Unit>

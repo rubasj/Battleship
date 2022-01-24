@@ -35,18 +35,18 @@ public class Window {
     public JLabel infoLB;
     public JLabel connectionInfoLB;
 
-    public final Client client;
+    public final Player Player;
     public final CommunicationHandler handler;
 
 
     /**
      * Set gui
      */
-    public Window(Client client, CommunicationHandler handler){
-        this.client = client;
+    public Window(Player Player, CommunicationHandler handler){
+        this.Player = Player;
         this.handler = handler;
 
-        firstWindow = new JFrame("Battleships - client");
+        firstWindow = new JFrame("Battleships - Player");
         loginPanel = new JPanel();
         JLabel ipLB = new JLabel("IPv4 adress: ");
         JLabel portLB = new JLabel("Port: ");
@@ -79,7 +79,7 @@ public class Window {
         loginPanel.add(connectionInfoLB);
 
 
-        this.client.setGUI(this);
+        this.Player.setGUI(this);
         this.createPanelForGame();
         this.getControlButtons();
         connBT.addActionListener(e-> {
@@ -89,7 +89,7 @@ public class Window {
 
                 int portInt = Integer.parseInt(port);
                 try {
-                    this.client.createConnection(ip, portInt);
+                    this.Player.createConnection(ip, portInt);
                 } catch (Exception eee) {
                     //TODO: handle exception
                 }
@@ -99,7 +99,7 @@ public class Window {
                     connectionInfoLB.setText("Invalid nickname! Enter only letters or numbers!");
                 }
                 else{
-                    this.client.sendMessage("NICKNAME|"+nicknameString+"\n");
+                    this.Player.sendMessage("NICKNAME|"+nicknameString+"\n");
 
                 }
 
@@ -122,7 +122,7 @@ public class Window {
         findGameBT = new JButton("Find game!");
         findGameBT.addActionListener(e-> {
                 /*      FIND NEW GAME       */
-                client.sendMessage("FIND_GAME\n");
+                Player.sendMessage("FIND_GAME\n");
                 System.out.println("In queue for game!");
         });
 
@@ -135,9 +135,9 @@ public class Window {
 
                 /* Disconnect */
                 try {
-                    client.sendMessage("DISCONNECT\n");
+                    Player.sendMessage("DISCONNECT\n");
                     Thread.sleep(100);
-                    client.endConnection();
+                    Player.endConnection();
                     System.out.println("Disconnected from server!");
                 } catch (Exception eee) {
                     //TODO: handle exception
@@ -233,7 +233,7 @@ public class Window {
 
         bt.addActionListener(e-> {
 
-            client.sendMessage("ATTACK|POSITION|" + i1 + "\n");
+            Player.sendMessage("ATTACK|POSITION|" + i1 + "\n");
             bt.setText("");
 
         });

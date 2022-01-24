@@ -27,12 +27,10 @@ board *board_create() {
         return NULL;
     }
 
-
     board_fill(tmp);
+    board_set(tmp); /* Auto set ships in board. */
 
     return tmp;
-
-
 }
 
 
@@ -44,7 +42,7 @@ void board_fill(board *bd) {
     }
 
     for (i = 0; i < bd->cols * bd->rows; ++i) {
-        bd->items[i] = '0';
+        bd->items[i] = EMPTY_ITEM;
     }
 
 
@@ -67,16 +65,16 @@ void board_free(board **poor) {
 
 
 void board_set(board *bd) {
-    int board_size = bd->cols * bd->rows;
+    uint board_size = bd->cols * bd->rows;
     int ships_generated = 0;
     int r;
-    int i = 0;
+
     srand(time(NULL));
     do
     {
         r = rand() % board_size;
-        if(bd->items[r] != '1'){
-            bd->items[r] = '1';
+        if(bd->items[r] != SHIP_ITEM){
+            bd->items[r] = SHIP_ITEM;
             ships_generated++;
         }
 
@@ -86,29 +84,48 @@ void board_set(board *bd) {
 
 }
 
-int is_hit(board *board, size_t pos){
+char is_hit(board *board, size_t pos){
     printf("Board attack position info: %d\n", pos);
-    if(board->items[pos]== '1' || board->items[pos]== '0'){
-        if(board->items[pos] == '1'){
-            board->items[pos]= '3';
+    if(board->items[pos] == SHIP_ITEM || board->items[pos] == EMPTY_ITEM){
+        if(board->items[pos] == SHIP_ITEM){
+            board->items[pos]= HIT_ITEM;
 
             board->ship_alive--;
 
 
             printf("Ship count: %d\n", board->ship_alive);
-            return '3';
+            return HIT_ITEM;
         }
         else{
 
-            board->items[pos]='2';
+            board->items[pos]=MISSED_ITEM;
 
-            return '2';
+            return MISSED_ITEM;
         }
     }
     else
     {
-        return '4';
+        return INVALID_HIT;
     }
 
-
 }
+
+
+char* get_reduced_items(board *bd) {
+    char* arr;
+
+    arr = (char *) malloc(sizeof (bd->items));
+    for (int i = 0; i < bd->rows * bd->cols; ++i) {
+        if (bd->items[i] == SHIP_ITEM) {
+            arr[i] = EMPTY_ITEM;
+        } else {
+            arr[i] = bd->items[i];
+        }
+    }
+
+    return arr;
+}
+
+
+
+
