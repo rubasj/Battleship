@@ -52,9 +52,9 @@ public class Window {
         JLabel portLB = new JLabel("Port: ");
         JLabel nicknameLabel = new JLabel("Nick: ");
 
-        final JTextField nicknameText = new JTextField("");
-        final JTextField ipText = new JTextField("147.228.63.10");
-        final JTextField portText = new JTextField("");
+        final JTextField nicknameText = new JTextField("jenda");
+        final JTextField ipText = new JTextField("147.228.67.10");
+        final JTextField portText = new JTextField("4757");
 
 
 
@@ -135,7 +135,7 @@ public class Window {
 
                 /* Disconnect */
                 try {
-                    Player.sendMessage("DISCONNECT\n");
+                    Player.sendMessage("EXIT\n");
                     Thread.sleep(100);
                     Player.endConnection();
                     System.out.println("Disconnected from server!");

@@ -3,6 +3,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+
+enum Status {
+    IN_LOBBY, IN_GAME, DISCONNECTED
+}
 /**
  * Client class
  */
@@ -15,10 +19,11 @@ public class Client
     public CommunicationHandler ch = null;
     public Window window = null;
 
-
+    public Status status;
 
     public Client(CommunicationHandler ch){
             this.ch = ch;
+            this.status = Status.DISCONNECTED;
     }
 
 

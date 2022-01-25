@@ -157,9 +157,9 @@ public class Reader implements Runnable
                             is_valid = true;
                         }
                         if(splited[1].equalsIgnoreCase("DISCONNECT")){
-                            Player.endConnection();
                             window.firstWindow.setContentPane(window.loginPanel);
                             window.firstWindow.revalidate();
+                            Player.endConnection();
                         }
                         is_valid = true;
                     }

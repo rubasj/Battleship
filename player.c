@@ -18,12 +18,12 @@ void player_create(Player **pl, char *name, int socket_ID) {
     (*pl) = calloc(1, sizeof(Player));
     (*pl) -> name = malloc((strlen(name) + 1) * sizeof(char));
     strcpy((*pl) -> name, name);
-    (*pl) -> socket_ID = socket_ID;
-    (*pl) -> connected = 1;
-    (*pl) -> disconnected_time = 0;
-    (*pl) -> state = 0;
-    (*pl) -> invalid_mess_number = 0;
-    (*pl) -> check_ping = 1;
+    (*pl)->socket_ID = socket_ID;
+    (*pl)->connected = 1;
+    (*pl)->disconnected_time = 0;
+    (*pl)->state = 0;
+    (*pl)->invalid_mess_number = 0;
+    (*pl)->check_ping = 1;
     return;
 }
 
@@ -148,3 +148,4 @@ void player_reconnect(Players **array_players, int socketID, games **all_games){
 
 
 }
+

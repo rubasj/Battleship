@@ -81,4 +81,8 @@ void player_remove(Players **array_player, int socket_ID);
  *  ***************************************
  */
 void player_reconnect(Players **array_players, int socketID, games **all_games);
+
+
+
+
 #endif //BATTLESHIP_PLAYER_H

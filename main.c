@@ -378,8 +378,10 @@ void *socket_handler(void *skt) {
 
     Player *client = get_player_by_socket_ID(cls, fd);
 
+    printf("%s\n", new_mess);
     int validate_message = check_input(new_mess);
-    if(validate_message == 0){
+    if(validate_message == 0)
+    {
         invalid_mess_process(fd, c_s);
         free(new_mess);
         free(skt);
@@ -435,7 +437,7 @@ void *socket_handler(void *skt) {
 
             if (client->state == IN_LOBBY) {
                 pthread_mutex_lock(&my_mutex);
-                play(&cls, &w_p, &a_g, fd, &client);
+                play(&cls, &w_p, &a_g, fd, &client); // osetreni kriticke sekce
                 pthread_mutex_unlock(&my_mutex);
             }
             else{
@@ -471,6 +473,15 @@ void *socket_handler(void *skt) {
         }
     }
 
+    else if (strcmp(type_message, "PING") == 0) {
+        if(mess_tokens_num == 1){
+            pthread_mutex_lock(&my_mutex);
+            get_player_by_socket_ID(cls, fd)->connected = 1;
+            printf("Client [%d] pinged\n\n", fd);
+            pthread_mutex_unlock(&my_mutex);
+        }
+    }
+
     else if (strcmp(type_message, "EXIT") == 0) {
         if(client != NULL) {
             if(mess_tokens_num != 1){
@@ -487,7 +498,8 @@ void *socket_handler(void *skt) {
             invalid_mess_process(fd, c_s);
         }
     }
-    else if (strcmp(type_message, "ROUND") == 0 || strcmp(type_message, "ROUNDEND") == 0 || strcmp(type_message, "GAMEEND") == 0) {
+    else if (strcmp(type_message, "ROUND") == 0 || strcmp(type_message, "ROUNDEND") == 0 || strcmp(type_message, "GAMEEND") == 0)
+    {
         if(client != NULL) {
             if(mess_tokens_num != 2){
                 invalid_mess_process(fd, c_s);
@@ -590,7 +602,7 @@ void *check_connectivity(void *args) {
             cl->disconnected_time = disconnected_time;
         }
 
-        if(cl -> check_ping == 1)
+        if(cl->check_ping == 1)
             send_message(cl->socket_ID, "[PING]\n");
     }
     pthread_exit(0);

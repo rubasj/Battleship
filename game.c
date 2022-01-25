@@ -100,13 +100,13 @@ game *get_game_by_player_name(Players *array_players, games **all_games, Player 
 void check_game_end(Players **array_clients, game *this_game, games **all_games) {
 
 
-    if (this_game->player_1_ships == 0 && this_game->player_2_ships != 0){
+    if (this_game->b1->ship_alive == 0 && this_game->b2->ship_alive != 0){
         //player 1 lose
         char message_1[100];
         char message_2[100];
 
-        sprintf(message_1, "[GAMEEND|%d]\n", 0);
-        sprintf(message_2, "[GAMEEND|%d]\n", 1);
+        sprintf(message_1, "GAME_OVER|%d\n", 0);
+        sprintf(message_2, "GAME_OVER|%d\n", 1);// 1 - WINNER
 
         send_message(get_player_by_name(*array_clients, this_game->name_1)->socket_ID, message_1);
         send_message(get_player_by_name(*array_clients, this_game->name_2)->socket_ID, message_2);
@@ -117,13 +117,14 @@ void check_game_end(Players **array_clients, game *this_game, games **all_games)
         remove_game(array_clients, all_games, this_game->game_ID);
 
     }
-    else if(this_game->player_1_ships != 0 && this_game->player_2_ships == 0){
+    else if(this_game->b1->ship_alive != 0 && this_game->b2->ship_alive == 0){
         //player 2 lose
         char message_1[100];
         char message_2[100];
 
-        sprintf(message_1, "[GAMEEND|%d]\n", 1); // 1 - WINNER
-        sprintf(message_2, "[GAMEEND|%d]\n", 0); // 0 - LOOSER
+        sprintf(message_1, "GAME_OVER|%d\n", 1); // 1 - WINNER
+        sprintf(message_2, "GAME_OVER|%d\n", 0);
+
 
         send_message(get_player_by_name(*array_clients, this_game->name_1)->socket_ID, message_1);
         send_message(get_player_by_name(*array_clients, this_game->name_2)->socket_ID, message_2);
