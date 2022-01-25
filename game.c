@@ -54,6 +54,7 @@ game *create_game(games **all_games, char *name_1, char *name_2) {
     (*all_games) -> games_count++;
     printf("Number of games: %d\n\n", (*all_games) -> games_count);
     (*all_games) -> games = realloc((*all_games) -> games, (*all_games) -> games_count * sizeof(game));
+
     game *game = NULL;
     init_game(&game, name_1, name_2);
     (*all_games) -> games[((*all_games) -> games_count) - 1] = game;
@@ -166,65 +167,61 @@ void remove_game(Players **pls, games **all_games, int game_ID) {
 }
 
 
-board *board_create() {
-    board *tmp;
-
-    tmp = (board *)malloc(sizeof(board));
-
-    if (!tmp) {
-        printf("MEMORY: Board not allocated \n");
+Board *board_create() {
+    Board *temp;
+    int i;
+    temp = (Board *)malloc(sizeof(Board *));
+    if(!temp)
         return NULL;
+
+    printf("OK MALLOC.");
+    temp->x_size = BOARD_SIZE;
+    temp->y_size = BOARD_SIZE;
+    temp->board_array = (char *)malloc(sizeof(int) * temp->x_size * temp->y_size);
+    for(i = 0; i < (temp->x_size * temp->y_size); i++){
+        temp->board_array[i] = '0';
     }
+    board_fill(temp);
+    board_set(temp);
+    temp->ship_alive = SHIP_COUNT;
+    return temp;
 
-    tmp->cols = BOARD_SIZE;
-    tmp->rows = BOARD_SIZE;
 
-    tmp->items = (char *) malloc(BOARD_SIZE * BOARD_SIZE * sizeof(char ));
-
-    if (!tmp->items) {
-        free(tmp);
-        return NULL;
-    }
-
-    board_fill(tmp);
-    board_set(tmp); /* Auto set ships in board. */
-
-    return tmp;
 }
 
 
-void board_fill(board *bd) {
+void board_fill(Board *bd) {
     size_t i;
 
-    if (!bd || !bd->items) {
+    if (!bd || !bd->board_array) {
         return;
     }
 
-    for (i = 0; i < bd->cols * bd->rows; ++i) {
-        bd->items[i] = EMPTY_ITEM;
+    for (i = 0; i < bd->x_size * bd->y_size; ++i) {
+        bd->board_array[i] = EMPTY_ITEM;
     }
 
 
 }
 
 
-void board_free(board **poor) {
+void board_free(Board **poor) {
     if (!poor || !*poor)
         return;
 
-    (*poor)->cols = 0;
-    (*poor)->rows = 0;
+    (*poor)->x_size = 0;
+    (*poor)->y_size = 0;
 
-    free((*poor)->items);
-    (*poor)->items = NULL;
+    free((*poor)->board_array);
+    (*poor)->board_array = NULL;
 
     free(*poor);
     *poor = NULL;
 }
 
 
-void board_set(board *bd) {
-    uint board_size = bd->cols * bd->rows;
+void board_set(Board *bd) {
+    uint board_size = bd->y_size * bd->x_size;
     int ships_generated = 0;
     int r;
 
@@ -232,8 +229,8 @@ void board_set(board *bd) {
     do
     {
         r = rand() % board_size;
-        if(bd->items[r] != SHIP_ITEM){
-            bd->items[r] = SHIP_ITEM;
+        if(bd->board_array[r] != SHIP_ITEM){
+            bd->board_array[r] = SHIP_ITEM;
             ships_generated++;
         }
 
@@ -243,42 +240,39 @@ void board_set(board *bd) {
 
 }
 
-char is_hit(board *board, size_t pos){
-    printf("Board attack position info: %d\n", pos);
-    if(board->items[pos] == SHIP_ITEM || board->items[pos] == EMPTY_ITEM){
-        if(board->items[pos] == SHIP_ITEM){
-            board->items[pos]= HIT_ITEM;
-
+char is_hit(Board *board, size_t pos){
+    printf("Board attack position info: %s\n", board->board_array);
+    if(board->board_array[pos]== '1' || board->board_array[pos]== '0'){
+        if(board->board_array[pos] == '1'){
+            board->board_array[pos]='3';
             board->ship_alive--;
-
-
             printf("Ship count: %d\n", board->ship_alive);
-            return HIT_ITEM;
+            return '3';
         }
-        else{
-
-            board->items[pos]=MISSED_ITEM;
-
-            return MISSED_ITEM;
+        else
+        {
+            board->board_array[pos]='2';
+            return '2';
         }
     }
     else
     {
-        return INVALID_HIT;
+        return '4';
     }
+
 
 }
 
 
-char* get_reduced_items(board *bd) {
+char* get_reduced_items(Board *bd) {
     char* arr;
 
-    arr = (char *) malloc(sizeof (bd->items));
-    for (int i = 0; i < bd->rows * bd->cols; ++i) {
-        if (bd->items[i] == SHIP_ITEM) {
+    arr = (char *) malloc(sizeof (bd->board_array));
+    for (int i = 0; i < bd->x_size * bd->y_size; ++i) {
+        if (bd->board_array[i] == SHIP_ITEM) {
             arr[i] = EMPTY_ITEM;
         } else {
-            arr[i] = bd->items[i];
+            arr[i] = bd->board_array[i];
         }
     }
 

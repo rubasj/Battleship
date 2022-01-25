@@ -93,9 +93,9 @@ void invalid_mess_process(int fd, fd_set c_s) {
 
         this_client->invalid_mess_number++;
 
-        if(this_client->invalid_mess_number >= 3){
-            exit_client(&cls, &w_p, &a_g, fd, &this_client, c_s);
-        }
+//        if(this_client->invalid_mess_number >= 3){
+//            exit_client(&cls, &w_p, &a_g, fd, &this_client, c_s);
+//        }
     }
     else{
         exit_client(&cls, &w_p, &a_g, fd, &this_client, c_s);
@@ -378,7 +378,7 @@ void *socket_handler(void *skt) {
 
     Player *client = get_player_by_socket_ID(cls, fd);
 
-    printf("%s\n", new_mess);
+
     int validate_message = check_input(new_mess);
     if(validate_message == 0)
     {
@@ -390,6 +390,8 @@ void *socket_handler(void *skt) {
 
     int i, j;
 
+
+    printf("%s\n", new_mess);
     for(i = 0; i < strlen(new_mess); i++){
         if(new_mess[i] == '[')
             break;
@@ -545,65 +547,65 @@ void *socket_handler(void *skt) {
 
 
 void *check_connectivity(void *args) {
-    if(check_conn == 0){
-        pthread_exit(0);
-        return NULL;
-    }
-
-    Player *cli = (Player*) args;
-
-    if(cli == NULL){
-        pthread_exit(0);
-        return NULL;
-    }
-
-    int socket_ID = cli->socket_ID;
-    Player *cl = NULL;
-    int disconnected_time = 0;
-    char name[30];
-    strcpy(name, cli -> name);
-
-    while(1) {
-        sleep(PING_INTERVAL);
-        cl = get_player_by_socket_ID(cls, socket_ID);
-        if (cl == NULL) {
-            printf("Client with socket ID %d is null, deleting thread\n\n", socket_ID);
-            break;
-        }
-
-        if (strcmp(cl->name, name) != 0)
-            break; //neco se pokazilo
-        if (cl->connected == 1) {
-            pthread_mutex_lock(&my_mutex);
-            cl->connected = 0;
-            pthread_mutex_unlock(&my_mutex);
-            if (disconnected_time > MAX_TIME_WITHOUT_RECONNECT) {
-                player_reconnect(&cls, socket_ID, &a_g);
-            }
-            disconnected_time = 0;
-            cl->disconnected_time = disconnected_time;
-        }
-        else {
-            if(cl->state == 1) { //pokud je ve fronte na hru, tak ho z fronty odstranim
-                remove_wanna_play(&w_p, cl -> socket_ID);
-                cl->state = 0;
-            }
-
-            if(cl->state == 3){
-                inform_opponent_about_disconnect(&cls, a_g, socket_ID);
-            }
-
-            if (cl->disconnected_time >= PING_TIMEOUT) {
-                exit_client(&cls, &w_p, &a_g, socket_ID, &cl, c_s);
-                break;
-            }
-
-            disconnected_time += PING_INTERVAL;
-            cl->disconnected_time = disconnected_time;
-        }
-
-        if(cl->check_ping == 1)
-            send_message(cl->socket_ID, "[PING]\n");
-    }
-    pthread_exit(0);
+//    if(check_conn == 0){
+//        pthread_exit(0);
+//        return NULL;
+//    }
+//
+//    Player *cli = (Player*) args;
+//
+//    if(cli == NULL){
+//        pthread_exit(0);
+//        return NULL;
+//    }
+//
+//    int socket_ID = cli->socket_ID;
+//    Player *cl = NULL;
+//    int disconnected_time = 0;
+//    char name[30];
+//    strcpy(name, cli -> name);
+//
+//    while(1) {
+//        sleep(PING_INTERVAL);
+//        cl = get_player_by_socket_ID(cls, socket_ID);
+//        if (cl == NULL) {
+//            printf("Client with socket ID %d is null, deleting thread\n\n", socket_ID);
+//            break;
+//        }
+//
+//        if (strcmp(cl->name, name) != 0)
+//            break; //neco se pokazilo
+//        if (cl->connected == 1) {
+//            pthread_mutex_lock(&my_mutex);
+//            cl->connected = 0;
+//            pthread_mutex_unlock(&my_mutex);
+//            if (disconnected_time > MAX_TIME_WITHOUT_RECONNECT) {
+//                player_reconnect(&cls, socket_ID, &a_g);
+//            }
+//            disconnected_time = 0;
+//            cl->disconnected_time = disconnected_time;
+//        }
+//        else {
+//            if(cl->state == 1) { //pokud je ve fronte na hru, tak ho z fronty odstranim
+//                remove_wanna_play(&w_p, cl -> socket_ID);
+//                cl->state = 0;
+//            }
+//
+//            if(cl->state == 3){
+//                inform_opponent_about_disconnect(&cls, a_g, socket_ID);
+//            }
+//
+//            if (cl->disconnected_time >= PING_TIMEOUT) {
+//                exit_client(&cls, &w_p, &a_g, socket_ID, &cl, c_s);
+//                break;
+//            }
+//
+//            disconnected_time += PING_INTERVAL;
+//            cl->disconnected_time = disconnected_time;
+//        }
+//
+//        if(cl->check_ping == 1)
+//            send_message(cl->socket_ID, "[PING]\n");
+//    }
+//    pthread_exit(0);
 }

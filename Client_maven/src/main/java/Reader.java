@@ -11,8 +11,8 @@ public class Reader implements Runnable
     private Client player = null;
     private BufferedReader reader = null;
     private CommunicationHandler handler = null;
-    long time_ping;
-    long curr_time;
+    boolean running;
+
 
     private Socket socket;
     public Reader(Socket socket, Window window, CommunicationHandler handler, Client Player){
@@ -20,6 +20,7 @@ public class Reader implements Runnable
         this.player = Player;
         this.window = window;
         this.socket = socket;
+        this.running = true;
         try {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (Exception e) {
@@ -29,10 +30,12 @@ public class Reader implements Runnable
 
     @Override
     public void run(){
-
+//        long time_ping  = System.currentTimeMillis();
+//        long time_ping2 = System.currentTimeMillis();
+//        long curr_time;
         String message = null;
         String []splited = null;
-        while(true)
+        while(running)
         {
             boolean is_valid = false;
             try {
@@ -40,8 +43,13 @@ public class Reader implements Runnable
                 if(message != null){
                     System.out.println("Message accepted!");
                     System.out.println(message);
-                    window.infoLB.setText(message);
                     splited = handler.splitMessage(message);
+
+                    if (!splited[0].equalsIgnoreCase("PING")) {
+                        window.infoLB.setText(message);
+                    }
+
+
 
 
                     /*******************************
@@ -51,25 +59,27 @@ public class Reader implements Runnable
                      *
                      *
                       *****************************/
-                    curr_time = System.currentTimeMillis();
-                    if (curr_time - time_ping > 5_000) {         // 5s
-                        player.sendMessage("PING");
-                    }
-
-                    if (curr_time - time_ping > 20_000) {         // 20s
-                        player.sendMessage("DISCONNECT");
-                        window.firstWindow.setContentPane(window.loginPanel);
-                        window.firstWindow.revalidate();
-                        player.status = Status.DISCONNECTED;
-                        player.endConnection();
-
-                    }
-
-                    if (splited.length == 1 && splited[0].equalsIgnoreCase("PING")) {
-                        time_ping = System.currentTimeMillis();
-                        player.sendMessage("PING");
-                        is_valid = true;
-                    }
+//                    curr_time = System.currentTimeMillis();
+//                    if (curr_time - time_ping2 > 5_000) {         // 5s
+//                        player.sendMessage("PING");
+//
+//                    }
+//
+//                    if (curr_time - time_ping > 20_000) {         // 20s - max interval pingu ze serveru
+//                        player.sendMessage("DISCONNECT");
+//                        window.firstWindow.setContentPane(window.loginPanel);
+//                        window.firstWindow.revalidate();
+//                        player.status = Status.DISCONNECTED;
+//                        is_valid = true;
+//                        player.endConnection();
+//
+//                    }
+//
+//                    if (splited.length == 1 && splited[0].equalsIgnoreCase("PING")) {
+//                        time_ping = System.currentTimeMillis();
+//                        player.sendMessage("PING");
+//                        is_valid = true;
+//                    }
 
 
                     /*              MESSAGE DECODER                */
@@ -135,6 +145,7 @@ public class Reader implements Runnable
                             System.out.println("All buttons initiated");
                             window.yourBTsPanel.revalidate();
                             window.opponentBTsPanel.revalidate();
+                            is_valid = true;
 
                         }
                         if (splited.length == 5 && splited[1].equalsIgnoreCase("START")) {
@@ -144,22 +155,22 @@ public class Reader implements Runnable
                             window.yourBTsPanel.removeAll();
                             window.opponentBTsPanel.removeAll();
                             window.yourBTs = window.initBTsInBoard(splited[3], true);
+                            window.oppLB.setText("Opponent: " + splited[2]);
                             window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
                             window.opponentBTs = window.initBTsInBoard("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", false);
                             window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
                             System.out.println("All buttons initiated");
                             window.yourBTsPanel.revalidate();
                             window.opponentBTsPanel.revalidate();
-
+                            is_valid = true;
                             player.status = Status.IN_GAME;
 
                         }
 
                         if (splited[1].equalsIgnoreCase("ERR")) {
                             window.infoLB.setText("Invalid request!");
+                            is_valid = true;
                         }
-
-
                         is_valid = true;
 
                     }
@@ -188,8 +199,13 @@ public class Reader implements Runnable
                                 if (splited[1].equalsIgnoreCase("INV")){
                                     System.out.println("Invalid ATTACK.");
                                     window.infoLB.setText( "Invalid ATTACK, try again.");
+                                } else if (splited[1].equalsIgnoreCase("NOT_YOUR_TURN")){
+                                    System.out.println("Invalid ATTACK - Not your turn.");
+                                    window.infoLB.setText( "Invalid ATTACK, Not your turn.");
                                 }
                             }
+
+
                             is_valid = true;
                         }
 
@@ -207,6 +223,7 @@ public class Reader implements Runnable
                             window.opponentBTsPanel.revalidate();
 
                             player.status = Status.IN_LOBBY;
+                            is_valid = true;
                         }
 
 
@@ -220,6 +237,7 @@ public class Reader implements Runnable
                             window.firstWindow.revalidate();
                             window.yourBTsPanel.removeAll();
                             window.opponentBTsPanel.removeAll();
+                            window.oppLB.setText("Opponent: " + splited[2]);
                             window.yourBTs = window.initBTsInBoard(splited[4], true);
                             window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
                             window.opponentBTs = window.initBTsInBoard(splited[6], false);
@@ -227,16 +245,17 @@ public class Reader implements Runnable
                             System.out.println("All buttons initiated");
                             window.yourBTsPanel.revalidate();
                             window.opponentBTsPanel.revalidate();
-
+                            is_valid = true;
                             player.sendMessage("RECONNECT|OK");
                         } catch (Exception e) {
                             // ccc
                         }
                     }
 
-                        if (splited[0].equalsIgnoreCase("OPP") && splited[1].equalsIgnoreCase("RECONNECTED")){
+                    if (splited[0].equalsIgnoreCase("OPP") && splited[1].equalsIgnoreCase("RECONNECTED")){
                             window.infoLB.setText("Opponent reconnected");
-                        }
+                        is_valid = true;
+                    }
 
 
                         if(splited[0].equalsIgnoreCase("DISCONNECT")){
@@ -244,6 +263,7 @@ public class Reader implements Runnable
                             window.opponentBTsPanel.removeAll();
                             window.yourBTsPanel.revalidate();
                             window.opponentBTsPanel.revalidate();
+                            is_valid = true;
                         }
                         if (splited[0].equalsIgnoreCase("LEAVE")){
                             window.yourBTsPanel.removeAll();
@@ -251,6 +271,7 @@ public class Reader implements Runnable
                             window.yourBTsPanel.revalidate();
                             window.opponentBTsPanel.revalidate();
                             window.infoLB.setText("Opponent left - end game.");
+                            is_valid = true;
                         }
 
                         if (splited[0].equalsIgnoreCase("DISCONNECT")) {
@@ -258,6 +279,7 @@ public class Reader implements Runnable
                             window.firstWindow.revalidate();
                             player.status = Status.DISCONNECTED;
                             player.endConnection();
+                            is_valid = true;
                         }
                         is_valid = true;
                     }
@@ -266,7 +288,7 @@ public class Reader implements Runnable
             }
             catch (IOException e)
             {
-                window.connectionInfoLB.setText("Invalid server!");
+                //window.connectionInfoLB.setText("Invalid server!");
             }
             if(!is_valid){
                 try {
@@ -293,6 +315,7 @@ public class Reader implements Runnable
 
     public void stop() {
 		try {
+		    running = false;
 			reader.close();
 		} catch (IOException e) {
 

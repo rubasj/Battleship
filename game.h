@@ -98,17 +98,17 @@ typedef unsigned int uint;
 
 
 
-board *board_create();
-void board_fill(board *bd);
-void board_set(board *bd);
-char is_hit(board *board, size_t pos);
-void board_free(board **poor);
+Board *board_create();
+void board_fill(Board *bd);
+void board_set(Board *bd);
+char is_hit(Board *board, size_t pos);
+void board_free(Board **poor);
 
 /**
  * For creating opponent array without ships.
  * @param bd
  * @return
  */
-char* get_reduced_items(board *bd); // for opponent
+char* get_reduced_items(Board *bd); // for opponent
 
 #endif 

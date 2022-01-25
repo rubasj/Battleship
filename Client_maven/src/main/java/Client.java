@@ -64,9 +64,11 @@ public class Client
 
     public void endConnection(){
         try {
+
             writer.close();
             reader.stop();
             skt.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -74,7 +76,8 @@ public class Client
 
     public void sendMessage(String message){
         try {
-            writer.write("[" + message + "]");
+            System.out.println(message);
+            writer.write("[" + message + "]\n");
             writer.flush();
         } catch (Exception e) {
 

@@ -2,6 +2,8 @@
 #define HEADER
 
 #include <pthread.h>
+#include "game.h"
+
 
 
 typedef enum {
@@ -37,18 +39,16 @@ typedef struct the_wanna_play {
 
 
 
-
-typedef struct _board {
-    size_t rows;
-    size_t cols;
-    char *items;
+typedef struct {
+    size_t x_size;
+    size_t y_size;
+    char *board_array;
     size_t ship_alive;
-
-}board;
+} Board;
 
 typedef struct the_game {
-    board *b1;          // Board for 1st player
-    board *b2;          // board for 2nd player
+    Board *b1;          // Board for 1st player
+    Board *b2;          // board for 2nd player
     int game_ID;        // game ID
     char *name_1;       // 1st player name
     char *name_2;       // 2nd player name

@@ -34,8 +34,9 @@ public class Window {
      */
     public JLabel infoLB;
     public JLabel connectionInfoLB;
+    public JLabel oppLB;
 
-    public final Client Player;
+    public final Client player;
     public final CommunicationHandler handler;
 
 
@@ -43,7 +44,7 @@ public class Window {
      * Set gui
      */
     public Window(Client Player, CommunicationHandler handler){
-        this.Player = Player;
+        this.player = Player;
         this.handler = handler;
 
         firstWindow = new JFrame("Battleships - Player");
@@ -79,7 +80,7 @@ public class Window {
         loginPanel.add(connectionInfoLB);
 
 
-        this.Player.setGUI(this);
+        this.player.setGUI(this);
         this.createPanelForGame();
         this.getControlButtons();
         connBT.addActionListener(e-> {
@@ -89,7 +90,7 @@ public class Window {
 
                 int portInt = Integer.parseInt(port);
                 try {
-                    this.Player.createConnection(ip, portInt);
+                    this.player.createConnection(ip, portInt);
                 } catch (Exception eee) {
                     //TODO: handle exception
                 }
@@ -99,7 +100,7 @@ public class Window {
                     connectionInfoLB.setText("Invalid nickname! Enter only letters or numbers!");
                 }
                 else{
-                    this.Player.sendMessage("CONNECT|"+nicknameString+"\n");
+                    this.player.sendMessage("CONNECT|"+nicknameString);
 
                 }
 
@@ -122,23 +123,20 @@ public class Window {
         findGameBT = new JButton("Find game!");
         findGameBT.addActionListener(e-> {
                 /*      FIND NEW GAME       */
-                Player.sendMessage("PLAY\n");
-                System.out.println("In queue for game!");
+                player.sendMessage("PLAY");
         });
 
 
         controlPanel.add(findGameBT);
 
-        disconnBT = new JButton("Disconnect!");
+        disconnBT = new JButton("Exit");
         controlPanel.add(disconnBT);
         disconnBT.addActionListener(e->{
 
                 /* Disconnect */
                 try {
-                    Player.sendMessage("EXIT\n");
+                    player.sendMessage("EXIT");
                     Thread.sleep(100);
-                    Player.endConnection();
-                    System.out.println("Disconnected from server!");
                 } catch (Exception eee) {
                     //TODO: handle exception
                 }
@@ -149,7 +147,7 @@ public class Window {
     /** Game Panel */
     public void createPanelForGame(){
         this.gamePanel = new JPanel();
-        gamePanel.setLayout(new GridLayout(2,2));
+        gamePanel.setLayout(new GridLayout(3,2));
 
         controlPanel = new JPanel();
         infoPanel = new JPanel();
@@ -157,9 +155,12 @@ public class Window {
         yourBTsPanel = new JPanel(new GridLayout(10,10));
         opponentBTsPanel = new JPanel(new GridLayout(10,10));
         infoLB = new JLabel("Generic message!");
+        oppLB = new JLabel("Opponent");
 
         gamePanel.add(infoPanel);
         gamePanel.add(controlPanel);
+        gamePanel.add(new JLabel("YOUR SHIPS"));
+        gamePanel.add(oppLB);
         gamePanel.add(yourBTsPanel);
         gamePanel.add(opponentBTsPanel);
         infoPanel.add(infoLB);
@@ -233,7 +234,7 @@ public class Window {
 
         bt.addActionListener(e-> {
 
-            Player.sendMessage("ATTACK|POSITION|" + i1 + "\n");
+            player.sendMessage("ATTACK|POSITION|" + i1);
             bt.setText("");
 
         });
