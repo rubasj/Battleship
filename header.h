@@ -2,7 +2,7 @@
 #define HEADER
 
 #include <pthread.h>
-#include "game.h"
+
 
 
 

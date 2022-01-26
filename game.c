@@ -51,35 +51,38 @@ void create_games(games **all_games) {
 
 
 game *create_game(games **all_games, char *name_1, char *name_2) {
+
+    if (!all_games || !*all_games || !name_1 || !name_2) {
+        printf("Create game: missing parameter.\n");
+        return NULL;
+    }
+
     (*all_games) -> games_count++;
     printf("Number of games: %d\n\n", (*all_games) -> games_count);
     (*all_games) -> games = realloc((*all_games) -> games, (*all_games) -> games_count * sizeof(game));
 
+
     game *game = NULL;
-    init_game(&game, name_1, name_2);
+
+    Board *tmp1 = board_create();
+
+    Board *tmp2 = board_create();
+
+    game->name_1 = name_1;
+    game->name_2 = name_2;
+    game->player_1_on_turn = 1;
+    game->player_2_on_turn = 0;
+    game->player_1_ships = 17;
+    game->player_2_ships = 17;
+
+    game->b1 = tmp1;
+    game->b2 = tmp2;
+
     (*all_games) -> games[((*all_games) -> games_count) - 1] = game;
     (*all_games) -> games[((*all_games) -> games_count) - 1] -> game_ID = ((*all_games) -> games_count) - 1;
     return game;
 }
 
-
-void init_game(game **game, char *name_1, char *name_2) {
-    (*game) = calloc(1, sizeof(game));
-    (*game) -> name_1 = name_1;
-    (*game) -> name_2 = name_2;
-    (*game) -> player_1_on_turn = 1;
-    (*game) -> player_2_on_turn = 0;
-    (*game) -> player_1_ships = 17;
-    (*game) -> player_2_ships = 17;
-
-    (*game) -> b1 = board_create();
-    (*game) -> b2 = board_create();
-
-
-    int i;
-
-
-}
 
 
 
@@ -168,7 +171,7 @@ void remove_game(Players **pls, games **all_games, int game_ID) {
 
 
 Board *board_create() {
-    Board *temp;
+    Board *temp = NULL;
     int i;
     temp = (Board *)malloc(sizeof(Board *));
     if(!temp)

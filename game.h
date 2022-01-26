@@ -52,8 +52,7 @@ game *create_game(games **all_games, char *name_1, char *name_2);
  * @param name_2 
  *  ***************************************
  */
-void init_game(game **game, char *name_1, char *name_2);
-
+void init_game(game **game, char *name_1, char *name_2, Board *b1, Board *b2);
 
 /** ***************************************
  * @brief Get the game by Player name object
