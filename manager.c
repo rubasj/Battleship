@@ -131,11 +131,11 @@ void play(Players **array_clients, wanna_play **wanna_plays, games **all_games, 
     char message_2[512];
 
 
-    // posilame jmeno oponenta a vygenerovanou board
-    sprintf(message_1, "PLAY|START|%s|%s|%d\n", player_2->name, this_game->b1->board_array, this_game->player_1_on_turn);
+    // posilame jmeno oponenta a vygenerovanou board           opponent name
+    sprintf(message_1, "PLAY|START|%s|%s|%d|%d|%d\n", player_2->name, this_game->b1->board_array, this_game->player_1_on_turn, this_game->b1->ship_alive, this_game->b2->ship_alive);
     printf("Player name: %s, board: \n",player_1->name);
     board_print(this_game->b1);
-    sprintf(message_2, "PLAY|START|%s|%s|%d\n", player_1->name, this_game->b2->board_array, this_game->player_2_on_turn);       // OK, funkcni
+    sprintf(message_2, "PLAY|START|%s|%s|%d|%d|%d\n", player_1->name, this_game->b2->board_array, this_game->player_2_on_turn, this_game->b2->ship_alive, this_game->b1->ship_alive);       // OK, funkcni
     printf("Player name: %s, board: \n",player_2->name);
     board_print(this_game->b2);
 
@@ -190,8 +190,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_1_on_turn = 0;
             this_game->player_2_on_turn = 1;
             printf("Player %s hit opponent's ship in pos: %d\n", player_1->name, att_position);
-            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d\n", att_position, this_game->player_1_on_turn); // Na P1 opponent se zmeni pole na cervenou
-            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d\n", att_position, this_game->player_2_on_turn); // Na P2 se zmeni na vlastnim poli pole na cervenou
+            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d|%d|%d\n", att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive); // Na P1 opponent se zmeni pole na cervenou
+            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d|%d|%d\n", att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // Na P2 se zmeni na vlastnim poli pole na cervenou
 
 
             send_message(player_1->socket_ID, message_1);
@@ -205,8 +205,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_2_on_turn = 1;
 
             printf("Player %s missed opponent's field in pos: %d\n", player_1->name, att_position);
-            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d\n", att_position, this_game->player_1_on_turn); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d\n", att_position, this_game->player_2_on_turn);
+            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d|%d\n", att_position, this_game->player_1_on_turn, this_game->b2->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d|%d\n", att_position, this_game->player_2_on_turn, this_game->b1->ship_alive);
 
             send_message(player_1->socket_ID, message_1);
             send_message(player_2->socket_ID, message_2);
@@ -244,8 +244,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_2_on_turn = 0;
 
             printf("Player %s hit opponent's ship in pos: %d\n", player_2->name, att_position);
-            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d\n", att_position, this_game->player_2_on_turn); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d\n", att_position, this_game->player_1_on_turn);
+            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d|%d|%d\n", att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d|%d|%d\n", att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive);
 
 
             send_message(fd, message_1);
@@ -258,8 +258,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_1_on_turn = 1;
             this_game->player_2_on_turn = 0;
             printf("Player %s missed opponent's field in pos: %d\n", player_2->name, att_position);
-            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d\n", att_position, this_game->player_2_on_turn); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d\n", att_position, this_game->player_1_on_turn);
+            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d|%d\n", att_position, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d|%d\n", att_position, this_game->player_1_on_turn, this_game->b2->ship_alive);
 
             send_message(fd, message_1);
             send_message(player_1->socket_ID, message_2);

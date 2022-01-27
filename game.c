@@ -237,7 +237,7 @@ void board_free(Board **poor) {
 
 
 void board_set(Board *bd) {
-    uint board_size = bd->y_size * bd->x_size;
+    uint board_size = (bd->y_size * bd->x_size) - 1;
     int ships_generated = 0;
     int r;
 
@@ -252,7 +252,30 @@ void board_set(Board *bd) {
 
     } while (SHIP_COUNT!=ships_generated);
 
-    printf("BOARD FILLED:\n%s\n", bd->board_array);
+    int tmp = 0;
+    for (int i = 0; i < 100; ++i) {
+        if(bd->board_array[i] == SHIP_ITEM)
+            tmp++;
+    }
+
+    if (tmp == SHIP_COUNT) {
+        printf("BOARD FILLED:\n%s\n", bd->board_array);
+        return;
+    } else {
+        do
+        {
+            r = rand() % (board_size - 0 + 1) ;
+            if(bd->board_array[r] != SHIP_ITEM){
+                bd->board_array[r] = SHIP_ITEM;
+                tmp++;
+            }
+
+
+        } while (SHIP_COUNT!=tmp);
+    }
+    printf("OK: BOARD FILLED:\n%s\n", bd->board_array);
+
+
 
 }
 

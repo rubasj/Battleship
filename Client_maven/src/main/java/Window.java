@@ -35,6 +35,7 @@ public class Window {
     public JLabel infoLB;
     public JLabel connectionInfoLB;
     public JLabel oppLB;
+    public JLabel yourLB;
 
     public final Client player;
     public final CommunicationHandler handler;
@@ -156,10 +157,11 @@ public class Window {
         opponentBTsPanel = new JPanel(new GridLayout(10,10));
         infoLB = new JLabel("Generic message!");
         oppLB = new JLabel("Opponent");
+        yourLB = new JLabel("Your ship count: ");
 
         gamePanel.add(infoPanel);
         gamePanel.add(controlPanel);
-        gamePanel.add(new JLabel("YOUR SHIPS"));
+        gamePanel.add(yourLB);
         gamePanel.add(oppLB);
         gamePanel.add(yourBTsPanel);
         gamePanel.add(opponentBTsPanel);
