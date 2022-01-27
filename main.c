@@ -363,6 +363,25 @@ int check_input(char *input) {
     }
 }
 
+char** split_message(char *message, int *message_len){
+    char *buf = malloc(strlen(message)*sizeof(message));
+    strcpy(buf, message);
+    int i = 0;
+    int j = 0;
+    char *p = strtok (buf, "|");
+    char **array = malloc(200 * sizeof(char*));
+
+    while (p != NULL)
+    {
+        array[i] = malloc(strlen(p) * sizeof(char));
+        array[i++] = p;
+        p = strtok (NULL, "|");
+    }
+    *message_len = i;
+    return array;
+}
+
+
 void *socket_handler(void *skt) {
 
 
@@ -410,10 +429,13 @@ void *socket_handler(void *skt) {
     free(skt);
 
     int mess_len = strlen(mess); //delka zpravy
-    int mess_tokens_num = get_tokens_num(mess);
+    int mess_tokens_num = 0;
 
-    char *tok = strtok(mess, "|");
-    char *type_message = tok;
+    char **split_mess = NULL;
+
+    split_mess = split_message(mess, &mess_tokens_num);
+
+    char *type_message = split_mess[0];
 
     free(new_mess);
 
@@ -425,7 +447,7 @@ void *socket_handler(void *skt) {
             return NULL;
         }
         pthread_mutex_lock(&my_mutex);
-        connect_client(&cls, a_g, w_p, tok, fd, client, c_s);
+        connect_client(&cls, a_g, w_p, split_mess[1], fd, client, c_s);
         pthread_mutex_unlock(&my_mutex);
     }
     else if (strcmp(type_message, "PLAY") == 0)
@@ -454,23 +476,27 @@ void *socket_handler(void *skt) {
     }
     else if (strcmp(type_message, "ATTACK") == 0)
     {
+        printf("ATTACK OK, %d\n", mess_tokens_num);
         if (client != NULL) {
-            if(mess_tokens_num != 2){           // Ocekavame PLAY|<position>
+            if(mess_tokens_num != 3){           // Ocekavame ATTACK|POS|pos
+
                 invalid_mess_process(fd, c_s);
                 free(mess);
                 return NULL;
             }
 
-            if(client->state == PLAYING) {
+            if(client->state == PLAYING && strcmp(split_mess[1], "POSITION") == 0) {
                 pthread_mutex_lock(&my_mutex);
-                attack_position(&cls, &a_g, fd, &client, tok);
+                attack_position(&cls, &a_g, fd, &client, split_mess[2]);
                 pthread_mutex_unlock(&my_mutex);
             }
             else {
+
                 invalid_mess_process(fd, c_s);
             }
         }
         else {
+            printf("ERR: TOKENIZE, %s\n", type_message);
             invalid_mess_process(fd, c_s);
         }
     }
@@ -502,19 +528,19 @@ void *socket_handler(void *skt) {
     }
     else if (strcmp(type_message, "ROUND") == 0 || strcmp(type_message, "ROUNDEND") == 0 || strcmp(type_message, "GAMEEND") == 0)
     {
-        if(client != NULL) {
-            if(mess_tokens_num != 2){
-                invalid_mess_process(fd, c_s);
-                free(mess);
-                return NULL;
-            }
-            pthread_mutex_lock(&my_mutex);
-            process_roundend_mess(&cls, tok, &a_g, fd, &client);
-            pthread_mutex_unlock(&my_mutex);
-        }
-        else {
-            invalid_mess_process(fd, c_s);
-        }
+//        if(client != NULL) {
+//            if(mess_tokens_num != 2){
+//                invalid_mess_process(fd, c_s);
+//                free(mess);
+//                return NULL;
+//            }
+//            pthread_mutex_lock(&my_mutex);
+//            process_roundend_mess(&cls, split_message, &a_g, fd, &client);
+//            pthread_mutex_unlock(&my_mutex);
+//        }
+//        else {
+//            invalid_mess_process(fd, c_s);
+//        }
     }
     else if (strcmp(type_message, "RECONNECT") == 0) {
         if(client != NULL) {
@@ -524,7 +550,7 @@ void *socket_handler(void *skt) {
                 return NULL;
             }
             pthread_mutex_lock(&my_mutex);
-            process_reconnect_mess(tok, &cls, &w_p, &a_g, fd, c_s);
+            process_reconnect_mess(split_mess[1], &cls, &w_p, &a_g, fd, c_s);
             pthread_mutex_unlock(&my_mutex);
         }
         else {

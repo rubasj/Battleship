@@ -179,11 +179,13 @@ public class Window {
 
                 if(board.charAt(i) == '0')
                     buttons[i] = new JButton("");
-                if(board.charAt(i) == '1')
+                if(board.charAt(i) == '1') {
                     buttons[i] = new JButton("X");
+                    buttons[i].setBackground(Color.GREEN);
+                }
                 if(board.charAt(i) == '2'){
                     buttons[i] = new JButton("");
-                    buttons[i].setBackground(Color.GREEN);
+
                 }
                 if(board.charAt(i) == '3'){
                     buttons[i] = new JButton("X");

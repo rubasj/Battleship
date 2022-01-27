@@ -62,25 +62,29 @@ game *create_game(games **all_games, char *name_1, char *name_2) {
     (*all_games) -> games = realloc((*all_games) -> games, (*all_games) -> games_count * sizeof(game));
 
 
-    game *game = NULL;
+    game *gm = NULL;
 
+    srand(time(0));
     Board *tmp1 = board_create();
 
     Board *tmp2 = board_create();
 
-    game->name_1 = name_1;
-    game->name_2 = name_2;
-    game->player_1_on_turn = 1;
-    game->player_2_on_turn = 0;
-    game->player_1_ships = 17;
-    game->player_2_ships = 17;
+    gm = (game*)malloc(sizeof(game));
+    gm->name_1 = name_1;
+    gm->name_2 = name_2;
+    gm->player_1_on_turn = 1;
+    gm->player_2_on_turn = 0;
+    gm->player_1_ships = 17;
+    gm->player_2_ships = 17;
 
-    game->b1 = tmp1;
-    game->b2 = tmp2;
+    gm->b1 = tmp1;
+    gm->b2 = tmp2;
 
-    (*all_games) -> games[((*all_games) -> games_count) - 1] = game;
+    printf("Create game: OK");
+
+    (*all_games) -> games[((*all_games) -> games_count) - 1] = gm;
     (*all_games) -> games[((*all_games) -> games_count) - 1] -> game_ID = ((*all_games) -> games_count) - 1;
-    return game;
+    return gm;
 }
 
 
@@ -104,7 +108,7 @@ game *get_game_by_player_name(Players *array_players, games **all_games, Player 
 void check_game_end(Players **array_clients, game *this_game, games **all_games) {
 
 
-    if (this_game->b1->ship_alive == 0 && this_game->b2->ship_alive != 0){
+    if (this_game->b1->ship_alive == 0){
         //player 1 lose
         char message_1[100];
         char message_2[100];
@@ -118,10 +122,10 @@ void check_game_end(Players **array_clients, game *this_game, games **all_games)
         get_player_by_name(*array_clients, this_game->name_1)->state = IN_LOBBY;
         get_player_by_name(*array_clients, this_game->name_2)->state = IN_LOBBY;
 
-        remove_game(array_clients, all_games, this_game->game_ID);
+        remove_game(all_games, this_game->game_ID);
 
     }
-    else if(this_game->b1->ship_alive != 0 && this_game->b2->ship_alive == 0){
+    else if(this_game->b2->ship_alive == 0){
         //player 2 lose
         char message_1[100];
         char message_2[100];
@@ -133,17 +137,17 @@ void check_game_end(Players **array_clients, game *this_game, games **all_games)
         send_message(get_player_by_name(*array_clients, this_game->name_1)->socket_ID, message_1);
         send_message(get_player_by_name(*array_clients, this_game->name_2)->socket_ID, message_2);
 
-        get_player_by_name(*array_clients, this_game->name_1)->state = DISCONNECT;
-        get_player_by_name(*array_clients, this_game->name_2)->state = DISCONNECT;
+        get_player_by_name(*array_clients, this_game->name_1)->state = IN_LOBBY;
+        get_player_by_name(*array_clients, this_game->name_2)->state = IN_LOBBY;
 
-        remove_game(array_clients, all_games, this_game->game_ID);
+        remove_game(all_games, this_game->game_ID);
     }
 
 }
 
 
 
-void remove_game(Players **pls, games **all_games, int game_ID) {
+void remove_game(games **all_games, int game_ID) {
     int i;
     int count = (*all_games) -> games_count;
     int index;
@@ -173,7 +177,7 @@ void remove_game(Players **pls, games **all_games, int game_ID) {
 Board *board_create() {
     Board *temp = NULL;
     int i;
-    temp = (Board *)malloc(sizeof(Board *));
+    temp = (Board *)malloc(sizeof(Board));
     if(!temp)
         return NULL;
 
@@ -192,6 +196,15 @@ Board *board_create() {
 
 }
 
+void board_print(Board *b) {
+    for (int i = 0; i < (b->x_size * b->y_size); i++) {
+        if (i % 10 == 0)
+            printf("\n");
+
+        printf("%c ", b->board_array[i]);
+
+    }
+}
 
 void board_fill(Board *bd) {
     size_t i;
@@ -228,10 +241,9 @@ void board_set(Board *bd) {
     int ships_generated = 0;
     int r;
 
-    srand(time(NULL));
     do
     {
-        r = rand() % board_size;
+        r = rand() % (board_size - 0 + 1) ;
         if(bd->board_array[r] != SHIP_ITEM){
             bd->board_array[r] = SHIP_ITEM;
             ships_generated++;
@@ -240,11 +252,12 @@ void board_set(Board *bd) {
 
     } while (SHIP_COUNT!=ships_generated);
 
+    printf("BOARD FILLED:\n%s\n", bd->board_array);
 
 }
 
 char is_hit(Board *board, size_t pos){
-    printf("Board attack position info: %s\n", board->board_array);
+//    printf("Board attack position info: %s\n", board->board_array);
     if(board->board_array[pos]== '1' || board->board_array[pos]== '0'){
         if(board->board_array[pos] == '1'){
             board->board_array[pos]='3';

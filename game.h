@@ -46,15 +46,6 @@ void create_games(games **all_games);
 game *create_game(games **all_games, char *name_1, char *name_2);
 
 /** ***************************************
- * @brief prepares game
- * @param game
- * @param name_1 
- * @param name_2 
- *  ***************************************
- */
-void init_game(game **game, char *name_1, char *name_2, Board *b1, Board *b2);
-
-/** ***************************************
  * @brief Get the game by Player name object
  * @param array_players
  * @param all_games 
@@ -82,7 +73,7 @@ void check_game_end(Players **array_clients, game *this_game, games **all_games)
  * @param game_ID 
  *  ***************************************
  */
-void remove_game(Players **pls, games **all_games, int game_ID);
+void remove_game(games **all_games, int game_ID);
 
 
 #define BOARD_SIZE 10
@@ -102,6 +93,8 @@ void board_fill(Board *bd);
 void board_set(Board *bd);
 char is_hit(Board *board, size_t pos);
 void board_free(Board **poor);
+
+void board_print(Board *b);
 
 /**
  * For creating opponent array without ships.

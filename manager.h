@@ -43,7 +43,7 @@ void play(Players **array_clients, wanna_play **wanna_plays, games **all_games, 
  * @param cl \
  *
  */
-void attack_position(Players **array_clients, games **all_games, int fd, Player **cl, char *tok);
+void attack_position(Players **array_clients, games **all_games, int fd, Player **cl, char *position);
 
 
 

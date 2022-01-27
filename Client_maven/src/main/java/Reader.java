@@ -212,7 +212,7 @@ public class Reader implements Runnable
                         if(splited[0].equalsIgnoreCase("GAME_OVER")) {
                             System.out.println("Game ended received");
 
-                            if (Integer.parseInt(splited[2]) == 0) {
+                            if (Integer.parseInt(splited[1]) == 0) {
                                 window.infoLB.setText("You loose.");
                             } else {
                                 window.infoLB.setText("You win.");
