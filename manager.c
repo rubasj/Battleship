@@ -22,7 +22,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
     char *name = tok;
     int name_len = (int)strlen(name);
 
-    if(name_len > 10){
+    if(name_len > 10){          // max 10 znaku jmena
         char *message = "CONNECT|ERR\n";
 		send_message(fd, message); 
         return;
@@ -169,7 +169,7 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
     if (this_game->player_1_on_turn == 1) {
         printf("Utoci player1> jmeno: %s\n", player_1->name);
     } else {
-        printf("Utoci player1> jmeno: %s\n", player_2->name);
+        printf("Utoci player2> jmeno: %s\n", player_2->name);
     }
     // hrac co je na rade smi hrat jinak posle err
     // pokud hrac nebude -> odesle err
@@ -350,10 +350,11 @@ void process_roundend_mess(Players **array_clients, char *tok, games **all_games
 void process_reconnect_mess(char* tok, Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, fd_set c_s){
 
     char *result = tok;
-
+    printf("CLIENT reconnect 1.");
     Player *cl = get_player_by_socket_ID(*array_clients, fd);
-
+    printf("CLIENT reconnect 2.");
     if(strcmp(result, "OK") == 0){
+        printf("CLIENT reconnect 3.");
         return;
     }
     else if(strcmp(result, "ERR") == 0){

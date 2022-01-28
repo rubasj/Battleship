@@ -415,19 +415,20 @@ void *socket_handler(void *skt) {
         if(new_mess[i] == '[')
             break;
     }
+    printf("Main: mess.");
 
     for(j = i; j < strlen(new_mess); j++) {
         if(new_mess[j] == ']')
             break;
     }
-
+    printf("Main: mess2.");
     int new_mess_len = j - i - 2;
     char *mess = NULL;
     mess = (char *)malloc(new_mess_len + 2);
     strncpy(mess, new_mess + i + 1, j - i - 1);
     mess[new_mess_len + 1] = '\0';
     free(skt);
-
+    printf("Main: mess3.");
     int mess_len = strlen(mess); //delka zpravy
     int mess_tokens_num = 0;
 
@@ -438,7 +439,7 @@ void *socket_handler(void *skt) {
     char *type_message = split_mess[0];
 
     free(new_mess);
-
+    printf("Main: mess4.");
     if (strcmp(type_message, "CONNECT") == 0)
     {
         if(mess_tokens_num != 2){
@@ -476,7 +477,7 @@ void *socket_handler(void *skt) {
     }
     else if (strcmp(type_message, "ATTACK") == 0)
     {
-        printf("ATTACK OK, %d\n", mess_tokens_num);
+
         if (client != NULL) {
             if(mess_tokens_num != 3){           // Ocekavame ATTACK|POS|pos
 
@@ -526,23 +527,9 @@ void *socket_handler(void *skt) {
             invalid_mess_process(fd, c_s);
         }
     }
-    else if (strcmp(type_message, "ROUND") == 0 || strcmp(type_message, "ROUNDEND") == 0 || strcmp(type_message, "GAMEEND") == 0)
-    {
-//        if(client != NULL) {
-//            if(mess_tokens_num != 2){
-//                invalid_mess_process(fd, c_s);
-//                free(mess);
-//                return NULL;
-//            }
-//            pthread_mutex_lock(&my_mutex);
-//            process_roundend_mess(&cls, split_message, &a_g, fd, &client);
-//            pthread_mutex_unlock(&my_mutex);
-//        }
-//        else {
-//            invalid_mess_process(fd, c_s);
-//        }
-    }
+
     else if (strcmp(type_message, "RECONNECT") == 0) {
+        printf("Main: Reconnect.");
         if(client != NULL) {
             if(mess_tokens_num != 2){
                 invalid_mess_process(fd, c_s);
@@ -550,6 +537,8 @@ void *socket_handler(void *skt) {
                 return NULL;
             }
             pthread_mutex_lock(&my_mutex);
+            printf("Main: Reconnect 2.");
+
             process_reconnect_mess(split_mess[1], &cls, &w_p, &a_g, fd, c_s);
             pthread_mutex_unlock(&my_mutex);
         }

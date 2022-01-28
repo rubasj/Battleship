@@ -307,12 +307,13 @@ char* get_reduced_items(Board *bd) {
     char* arr;
 
     arr = (char *) malloc(sizeof (bd->board_array));
-    for (int i = 0; i < bd->x_size * bd->y_size; ++i) {
-        if (bd->board_array[i] == SHIP_ITEM) {
+
+    strcpy(arr, bd->board_array);
+    for (int i = 0; i < strlen(arr); ++i) {
+        if (arr[i] == SHIP_ITEM) {
             arr[i] = EMPTY_ITEM;
-        } else {
-            arr[i] = bd->board_array[i];
         }
+ ;
     }
 
     return arr;

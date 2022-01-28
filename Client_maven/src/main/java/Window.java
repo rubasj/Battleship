@@ -87,7 +87,13 @@ public class Window {
         connBT.addActionListener(e-> {
 
             String port = portText.getText();
-            String ip = ipText.getText();
+
+            String ip;
+            if (ipText.getText().equalsIgnoreCase("localhost"))
+                ip = "127.0.0.1";
+            else {
+                ip = ipText.getText();
+            }
 
                 int portInt = Integer.parseInt(port);
                 try {
