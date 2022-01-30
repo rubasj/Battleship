@@ -10,7 +10,7 @@
 #include "manager.h"
 
 
-void connect_client(Players **array_clients, games *all_games, wanna_play *wanna_plays, char *tok, int fd, Player *new_client, fd_set c_s) {
+void connect_client(Players **array_clients, games *all_games, game_finder *wanna_plays, char *tok, int fd, Player *new_client, fd_set c_s) {
 
     if(tok == NULL){
         // za CONNECT| není nic 
@@ -33,6 +33,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
             if (new_client == NULL) {
                 player_add(array_clients, name, fd);
 				new_client = (*array_clients)->players[(*array_clients)->players_count - 1];    // ulozeni clienta na posledni misto
+                new_client->state = IN_LOBBY;
 //				pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);
 				printf("Name: %s\n", (*array_clients)->players[(*array_clients)->players_count - 1]->name);
 				char *message = "CONNECT|OK\n";
@@ -50,6 +51,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
 	            pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);
 	            printf("Name: %s\n", (*array_clients) -> players[(*array_clients) -> players_count - 1] -> name);
                 char *message = "CONNECT|OK\n";
+
 				send_message(fd, message);
             }
         }
@@ -76,7 +78,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
                 char *message = "CONNECT|OK\n";
 				send_message(fd, message);
             }
-            process_reconnect_new_connect(array_clients, all_games, name, fd, new_client, c_s);	// reconnect
+            reconnect_new_connect(array_clients, all_games, name, fd, new_client, c_s);	// reconnect
         }
         else {
             //takvovy hrac jiz existuje
@@ -87,7 +89,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
 
 }
 
-void play(Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, Player **cl){
+void play(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl){
     if((*cl)->state == WANNA_PLAY) {
         send_message(fd, "PLAY|ERR\n");
         return;
@@ -161,7 +163,7 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
         return;
     }
 
-    game *this_game = get_game_by_player_name(*array_clients, all_games, cl);
+    game *this_game = get_game_by_player_name(all_games, cl);
 
     Player *player_1 = get_player_by_name(*array_clients, this_game->name_1);
     Player *player_2 = get_player_by_name(*array_clients, this_game->name_2);
@@ -184,36 +186,35 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
 
         char att_res = is_hit(this_game->b2, att_position);         // Utok na board2 hrace Player2
 
+        char message_1[100];
+        char message_2[100];
         if (att_res == HIT_ITEM) {
-            char message_1[100];
-            char message_2[100];
+
             this_game->player_1_on_turn = 0;
             this_game->player_2_on_turn = 1;
             printf("Player %s hit opponent's ship in pos: %d\n", player_1->name, att_position);
-            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d|%d|%d\n", att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive); // Na P1 opponent se zmeni pole na cervenou
-            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d|%d|%d\n", att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // Na P2 se zmeni na vlastnim poli pole na cervenou
+            sprintf(message_1, "ATTACK|%c|OPP|%d|%d|%d|%d\n", HIT_ITEM, att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive); // Na P1 opponent se zmeni pole na cervenou
+            sprintf(message_2, "ATTACK|%c|YOU|%d|%d|%d|%d\n", HIT_ITEM, att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // Na P2 se zmeni na vlastnim poli pole na cervenou
 
 
             send_message(player_1->socket_ID, message_1);
             send_message(player_2->socket_ID, message_2);
 
         } else if (att_res == MISSED_ITEM) {
-            char message_1[100];
-            char message_2[100];
+
 
             this_game->player_1_on_turn = 0;
             this_game->player_2_on_turn = 1;
 
             printf("Player %s missed opponent's field in pos: %d\n", player_1->name, att_position);
-            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d|%d\n", att_position, this_game->player_1_on_turn, this_game->b2->ship_alive); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d|%d\n", att_position, this_game->player_2_on_turn, this_game->b1->ship_alive);
+            sprintf(message_1, "ATTACK|%c|OPP|%d|%d|%d\n", MISSED_ITEM, att_position, this_game->player_1_on_turn, this_game->b2->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|%c|YOU|%d|%d|%d\n", MISSED_ITEM, att_position, this_game->player_2_on_turn, this_game->b1->ship_alive);
 
             send_message(player_1->socket_ID, message_1);
             send_message(player_2->socket_ID, message_2);
 
         }
         else {          // pokud klikne na pole ktere je jiz trefene
-            char message_1[100];
 
             printf("Player %s clicked on wrong field in pos: %d\n", player_1->name, att_position);
             sprintf(message_1, "ATTACK|INV"); // pouze pro hrace, jenz zautocil
@@ -244,8 +245,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_2_on_turn = 0;
 
             printf("Player %s hit opponent's ship in pos: %d\n", player_2->name, att_position);
-            sprintf(message_1, "ATTACK|HIT|OPP|%d|%d|%d|%d\n", att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|HIT|YOU|%d|%d|%d|%d\n", att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive);
+            sprintf(message_1, "ATTACK|%c|OPP|%d|%d|%d|%d\n", HIT_ITEM, att_position, this_game->b2->ship_alive, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|%c|YOU|%d|%d|%d|%d\n", HIT_ITEM, att_position, this_game->b1->ship_alive, this_game->player_1_on_turn, this_game->b2->ship_alive);
 
 
             send_message(fd, message_1);
@@ -258,8 +259,8 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
             this_game->player_1_on_turn = 1;
             this_game->player_2_on_turn = 0;
             printf("Player %s missed opponent's field in pos: %d\n", player_2->name, att_position);
-            sprintf(message_1, "ATTACK|MISS|OPP|%d|%d|%d\n", att_position, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
-            sprintf(message_2, "ATTACK|MISS|YOU|%d|%d|%d\n", att_position, this_game->player_1_on_turn, this_game->b2->ship_alive);
+            sprintf(message_1, "ATTACK|%c|OPP|%d|%d|%d\n", MISSED_ITEM, att_position, this_game->player_2_on_turn, this_game->b1->ship_alive); // pro hrace, jenz zautocil
+            sprintf(message_2, "ATTACK|%c|YOU|%d|%d|%d\n", MISSED_ITEM, att_position, this_game->player_1_on_turn, this_game->b2->ship_alive);
 
             send_message(fd, message_1);
             send_message(player_1->socket_ID, message_2);
@@ -281,7 +282,7 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
 
 
 
-void exit_client(Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s){
+void exit_client(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s){
     Player *my_cl = get_player_by_socket_ID(*array_clients, fd);
 
     if(my_cl != NULL)
@@ -301,10 +302,10 @@ void exit_client(Players **array_clients, wanna_play **wanna_plays, games **all_
 
     //klient je ve hre
     else if((*cl)->state == 3) {
-        int game_id = get_game_by_player_name(*array_clients, all_games, cl)->game_ID;
+        int game_id = get_game_by_player_name(all_games, cl)->game_ID;
         
-        char *name1 = get_game_by_player_name(*array_clients, all_games, cl)->name_1;
-        char *name2 = get_game_by_player_name(*array_clients, all_games, cl)->name_2;
+        char *name1 = get_game_by_player_name(all_games, cl)->name_1;
+        char *name2 = get_game_by_player_name(all_games, cl)->name_2;
 
         char *second_player_name;
 
@@ -347,7 +348,7 @@ void process_roundend_mess(Players **array_clients, char *tok, games **all_games
     return;
 }
 
-void process_reconnect_mess(char* tok, Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, fd_set c_s){
+void process_reconnect_mess(char* tok, Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, fd_set c_s){
 
     char *result = tok;
     printf("CLIENT reconnect 1.");
@@ -363,7 +364,7 @@ void process_reconnect_mess(char* tok, Players **array_clients, wanna_play **wan
     return;
 }
 
-void process_reconnect_new_connect(Players **array_clients, games *all_games, char *name, int fd, Player *new_client, fd_set c_s){
+void reconnect_new_connect(Players **array_clients, games *all_games, char *name, int fd, Player *new_client, fd_set c_s){
  
     Player *old_client = get_player_by_name(*array_clients, name);
     
@@ -374,7 +375,7 @@ void process_reconnect_new_connect(Players **array_clients, games *all_games, ch
       
 
     int player_num = 0;
-    game *this_game = get_game_by_player_name(*array_clients, &all_games, &old_client);
+    game *this_game = get_game_by_player_name(&all_games, &old_client);
 
     if(this_game == NULL)
         return;
@@ -405,8 +406,8 @@ void process_reconnect_new_connect(Players **array_clients, games *all_games, ch
         new_client->connected = 1;
 
         char message[512];
-		sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_1_on_turn, this_game->name_2, this_game->player_1_ships, this_game->b1->board_array, this_game->player_2_ships,
-                get_reduced_items(this_game->b2));
+		sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_1_on_turn, this_game->name_2, this_game->b1->ship_alive, this_game->b1->board_array, this_game->b2->ship_alive,
+                this_game->b2->reduced_items);
         send_message(fd, message);
 
         char message2[256];
@@ -419,8 +420,8 @@ void process_reconnect_new_connect(Players **array_clients, games *all_games, ch
         new_client->connected = 1;
 
         char message[512];
-		sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_2_on_turn, this_game->name_1, this_game->player_2_ships, this_game->b2->board_array, this_game->player_1_ships,
-                get_reduced_items(this_game->b1));
+		sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_2_on_turn, this_game->name_1, this_game->b2->ship_alive, this_game->b2->board_array, this_game->b1->ship_alive,
+                this_game->b1->reduced_items);
         send_message(fd, message);
 
         char message2[256];
@@ -438,7 +439,7 @@ void inform_opponent_about_disconnect(Players **array_clients, games *all_games,
     if(this_client == NULL)
         return;
 
-    game* this_game = get_game_by_player_name(*array_clients, &all_games, &this_client);
+    game* this_game = get_game_by_player_name(&all_games, &this_client);
 
     if(this_game == NULL)
         return;
@@ -460,7 +461,7 @@ void inform_opponent_about_leave(Players **array_clients, games *all_games, int 
     if(this_client == NULL)
         return;
 
-    game* this_game = get_game_by_player_name(*array_clients, &all_games, &this_client);
+    game* this_game = get_game_by_player_name(&all_games, &this_client);
 
     if(this_game == NULL)
         return;

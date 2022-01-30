@@ -44,7 +44,7 @@ int MAX_MESSAGE_LENGTH = 20;
 
 Players *cls;
 games *a_g;
-wanna_play *w_p;
+game_finder *w_p;
 fd_set c_s, tests, errfd;
 
 time_t server_started_time;
@@ -179,7 +179,7 @@ int main(int argc , char *argv[]) {
     }
 
     players_create(&cls);
-    create_games(&a_g);
+    init_games(&a_g);
     create_wanna_play(&w_p);
 
     int server_socket, client_socket, len_addr, a2read, return_value, fd;
@@ -298,6 +298,7 @@ int main(int argc , char *argv[]) {
                             if(cl != NULL) {
                                 cl->check_ping = 0;
                                 cl->connected = 0;
+                                printf("Client socket [%d] disconnected.", fd);
                                 inform_opponent_about_disconnect(&cls, a_g, fd);
                             }
                         }
@@ -415,20 +416,21 @@ void *socket_handler(void *skt) {
         if(new_mess[i] == '[')
             break;
     }
-    printf("Main: mess.");
+
+
 
     for(j = i; j < strlen(new_mess); j++) {
         if(new_mess[j] == ']')
             break;
     }
-    printf("Main: mess2.");
+
     int new_mess_len = j - i - 2;
     char *mess = NULL;
     mess = (char *)malloc(new_mess_len + 2);
     strncpy(mess, new_mess + i + 1, j - i - 1);
     mess[new_mess_len + 1] = '\0';
     free(skt);
-    printf("Main: mess3.");
+
     int mess_len = strlen(mess); //delka zpravy
     int mess_tokens_num = 0;
 
@@ -439,7 +441,7 @@ void *socket_handler(void *skt) {
     char *type_message = split_mess[0];
 
     free(new_mess);
-    printf("Main: mess4.");
+
     if (strcmp(type_message, "CONNECT") == 0)
     {
         if(mess_tokens_num != 2){

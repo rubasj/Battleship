@@ -4,22 +4,22 @@
 #include "player.h"
 #include "header.h"
 #define MAX_GAMES 8
-
+#define BOARD_ITEMS 100 // rozmery 10x10
 
 /** ***************************************
- * @brief Create wanna_play
+ * @brief Create game_finder
  * @param wanna_plays
  * *************************************** 
  */
-void create_wanna_play(wanna_play **wanna_plays);
+void create_wanna_play(game_finder **wanna_plays);
 
 /** ***************************************
- * @brief Add socket to wanna_play
- * @param wanna_plays 
+ * @brief Add socket to game_finder
+ * @param game_finder_db
  * @param socket_ID 
  *  ***************************************
  */
-void add_wanna_play(wanna_play **wanna_plays, int socket_ID);
+void add_wanna_play(game_finder **game_finder_db, int socket_ID);
 
 /** ***************************************
  * @brief Remove Player from wanna plays
@@ -27,14 +27,14 @@ void add_wanna_play(wanna_play **wanna_plays, int socket_ID);
  * @param socket_ID 
  *  ***************************************
  */
-void remove_wanna_play(wanna_play **wanna_plays, int socket_ID);
+void remove_wanna_play(game_finder **wanna_plays, int socket_ID);
 
 /** ***************************************
  * @brief Create a games object
  * @param all_games 
  *  ***************************************
  */
-void create_games(games **all_games);
+void init_games(games **all_games);
 
 /** ***************************************
  * @brief Create a game object
@@ -53,7 +53,7 @@ game *create_game(games **all_games, char *name_1, char *name_2);
  * @return game* 
  *  ***************************************
  */
-game *get_game_by_player_name(Players *array_players, games **all_games, Player **cl);
+game *get_game_by_player_name(games **all_games, Player **cl);
 
 
 
@@ -101,6 +101,6 @@ void board_print(Board *b);
  * @param bd
  * @return
  */
-char* get_reduced_items(Board *bd); // for opponent
+//char* get_reduced_items(Board *bd); // for opponent
 
 #endif 

@@ -97,51 +97,51 @@ void player_remove(Players **array_player, int socket_ID) {
 }
 
 void player_reconnect(Players **array_players, int socketID, games **all_games){
-    if(get_player_by_socket_ID((*array_players), socketID) == NULL)
-        return;
-
-    int client_state = get_player_by_socket_ID((*array_players), socketID)->state;
-    Player *this_client = get_player_by_socket_ID((*array_players), socketID);
-
-
-    if(client_state == 0) {
-        char *message = "RECONNECT|1\n";
-        send_message(socketID, message);
-        return;
-    }
-    else if(client_state == 3){
-        game *this_game;
-        this_game = get_game_by_player_name((*array_players), all_games, &this_client);
-        if(this_game == NULL){
-            return;
-        }
-
-        if(strcmp(this_game->name_1, get_player_by_socket_ID((*array_players), socketID)->name) == 0){
-            char message[512];
-            sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_1_on_turn, this_game->name_2, this_game->player_1_ships, this_game->b1->board_array, this_game->player_2_ships,
-                    get_reduced_items(this_game->b2));
-
-            char message2[100];
-            sprintf(message2, "OPP|RECONNECTED\n");
-            send_message(get_player_by_name(*array_players, this_game->name_2)->socket_ID, message2);
-        }
-        else {
-            char message[512];
-            sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_2_on_turn, this_game->name_1, this_game->player_2_ships, this_game->b2->board_array, this_game->player_1_ships,
-                    get_reduced_items(this_game->b1));
-            send_message(get_player_by_name(*array_players, this_game->name_2)->socket_ID, message);
-
-            char message2[100];
-            sprintf(message2, "OPP|RECONNECTED\n");
-            send_message(get_player_by_name(*array_players, this_game->name_1)->socket_ID, message2);
-        }
-    }
-    else{
-        char *message = "RECONNECT|ERR\n";
-        send_message(socketID, message);
-        player_remove(array_players, socketID);
-    }
-
+//    if(get_player_by_socket_ID((*array_players), socketID) == NULL)
+//        return;
+//
+//    int client_state = get_player_by_socket_ID((*array_players), socketID)->state;
+//    Player *this_client = get_player_by_socket_ID((*array_players), socketID);
+//
+//
+//    if(client_state == 0) {
+//        char *message = "RECONNECT|1\n";
+//        send_message(socketID, message);
+//        return;
+//    }
+//    else if(client_state == 3){
+//        game *this_game;
+//        this_game = get_game_by_player_name(all_games, &this_client);
+//        if(this_game == NULL){
+//            return;
+//        }
+//
+//        if(strcmp(this_game->name_1, get_player_by_socket_ID((*array_players), socketID)->name) == 0){
+//            char message[512];
+//            sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_1_on_turn, this_game->name_2, this_game->player_1_ships, this_game->b1->board_array, this_game->player_2_ships,
+//                    get_reduced_items(this_game->b2));
+//
+//            char message2[100];
+//            sprintf(message2, "OPP|RECONNECTED\n");
+//            send_message(get_player_by_name(*array_players, this_game->name_2)->socket_ID, message2);
+//        }
+//        else {
+//            char message[512];
+//            sprintf(message, "RECONNECT|%d|%s|%d|%s|%d|%s\n", this_game->player_2_on_turn, this_game->name_1, this_game->player_2_ships, this_game->b2->board_array, this_game->player_1_ships,
+//                    get_reduced_items(this_game->b1));
+//            send_message(get_player_by_name(*array_players, this_game->name_2)->socket_ID, message);
+//
+//            char message2[100];
+//            sprintf(message2, "OPP|RECONNECTED\n");
+//            send_message(get_player_by_name(*array_players, this_game->name_1)->socket_ID, message2);
+//        }
+//    }
+//    else{
+//        char *message = "RECONNECT|ERR\n";
+//        send_message(socketID, message);
+//        player_remove(array_players, socketID);
+//    }
+//
 
 }
 

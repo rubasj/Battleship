@@ -33,7 +33,7 @@ public class Client
 
 
     public void createConnection(String ip, int port) throws IOException
-    { 
+    {
         Thread threadReader = null;
         try
         { 

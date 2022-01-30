@@ -34,7 +34,7 @@ typedef struct the_clients {
 typedef struct the_wanna_play {
     int size;
     int *socket_IDs;
-}wanna_play;
+}game_finder;
 
 
 
@@ -43,12 +43,15 @@ typedef struct {
     size_t x_size;
     size_t y_size;
     char *board_array;
+    char *reduced_items;            // board without non-hit ships, for reconnect
     size_t ship_alive;
 } Board;
 
 typedef struct the_game {
     Board *b1;          // Board for 1st player
     Board *b2;          // board for 2nd player
+
+
     int game_ID;        // game ID
     char *name_1;       // 1st player name
     char *name_2;       // 2nd player name

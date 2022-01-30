@@ -22,7 +22,7 @@ void *check_connectivity(void *args);
  * @param client 
  *  ***************************************
  */
-void connect_client(Players **array_clients, games *all_games, wanna_play *wanna_plays, char *tok, int fd, Player *new_client, fd_set c_s);
+void connect_client(Players **array_clients, games *all_games, game_finder *wanna_plays, char *tok, int fd, Player *new_client, fd_set c_s);
 
 /** ***************************************
  * @brief Processing of PLAY request
@@ -33,7 +33,7 @@ void connect_client(Players **array_clients, games *all_games, wanna_play *wanna
  * @param cl 
  *  ***************************************
  */
-void play(Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, Player **cl);
+void play(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl);
 
 /** ***************************************
  * @brief Processing of ATTACK request
@@ -56,7 +56,7 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
  * @param cl 
  *  ***************************************
  */
-void exit_client(Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s);
+void exit_client(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s);
 
 /** ***************************************
  * @brief Processing message about endind of round
@@ -79,7 +79,7 @@ void process_roundend_mess(Players **array_clients, char *tok, games **all_games
  * @param c_s 
  *  ***************************************
  */
-void process_reconnect_mess(char* tok, Players **array_clients, wanna_play **wanna_plays, games **all_games, int fd, fd_set c_s);
+void process_reconnect_mess(char* tok, Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, fd_set c_s);
 
 /** ***************************************
  * @brief Processing of reconnect (longterm)
@@ -87,10 +87,10 @@ void process_reconnect_mess(char* tok, Players **array_clients, wanna_play **wan
  * @param all_games 
  * @param tok 
  * @param fd 
- * @param client 
+ * @param new_client
  *  ***************************************
  */
-void process_reconnect_new_connect(Players **array_clients, games *all_games, char *name, int fd, Player *client, fd_set c_s);
+void reconnect_new_connect(Players **array_clients, games *all_games, char *name, int fd, Player *new_client, fd_set c_s);
 
 /** ***************************************
  * @brief Informing player that his opponent disconnected

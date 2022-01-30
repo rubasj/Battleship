@@ -6,23 +6,23 @@
 #include "game.h"
 
 
-void create_wanna_play(wanna_play **wanna_plays) {
-    (*wanna_plays) = calloc(1, sizeof(wanna_play));
+void create_wanna_play(game_finder **wanna_plays) {
+    (*wanna_plays) = calloc(1, sizeof(game_finder));
     (*wanna_plays) -> size = 0;
     (*wanna_plays) -> socket_IDs = calloc(1, sizeof(int));
 }
 
 
-void add_wanna_play(wanna_play **wanna_plays, int socket_ID) {
-    (*wanna_plays) -> size++;
+void add_wanna_play(game_finder **game_finder_db, int socket_ID) {
+    (*game_finder_db) -> size++;
     printf("Player [%d] wants to play\n", socket_ID);
-    (*wanna_plays) -> socket_IDs = realloc((*wanna_plays) -> socket_IDs, (*wanna_plays) -> size * sizeof(int));
-    (*wanna_plays) -> socket_IDs[((*wanna_plays) -> size) - 1] = socket_ID;
-    printf("Info: %d Player(s) want to play\n", (*wanna_plays) -> size);
+    (*game_finder_db) -> socket_IDs = realloc((*game_finder_db) -> socket_IDs, (*game_finder_db) -> size * sizeof(int));
+    (*game_finder_db) -> socket_IDs[((*game_finder_db) -> size) - 1] = socket_ID;
+    printf("Info: %d Player(s) want to play\n", (*game_finder_db) -> size);
 }
 
 
-void remove_wanna_play(wanna_play **wanna_plays, int socket_ID) {
+void remove_wanna_play(game_finder **wanna_plays, int socket_ID) {
     int i;
     int socket;
     int count = (*wanna_plays) -> size;
@@ -33,7 +33,7 @@ void remove_wanna_play(wanna_play **wanna_plays, int socket_ID) {
             if (i < (count - 1)) {
                 (*wanna_plays) -> socket_IDs[i] = (*wanna_plays) -> socket_IDs[((*wanna_plays) -> size)];
             }
-            (*wanna_plays) -> socket_IDs = realloc((*wanna_plays) -> socket_IDs, (*wanna_plays) -> size * sizeof(wanna_play));
+            (*wanna_plays) -> socket_IDs = realloc((*wanna_plays) -> socket_IDs, (*wanna_plays) -> size * sizeof(game_finder));
             printf("Player [%d] removed from queue\n", socket_ID);
             printf("Info: %d Player(s) want to play game\n\n", (*wanna_plays) -> size);
             return;
@@ -42,7 +42,7 @@ void remove_wanna_play(wanna_play **wanna_plays, int socket_ID) {
 }
 
 
-void create_games(games **all_games) {
+void init_games(games **all_games) {
     int max_games = MAX_GAMES;
     (*all_games) = calloc(1, sizeof(games));
     (*all_games) -> games_count = 0;
@@ -77,6 +77,9 @@ game *create_game(games **all_games, char *name_1, char *name_2) {
     gm->player_1_ships = 17;
     gm->player_2_ships = 17;
 
+
+
+
     gm->b1 = tmp1;
     gm->b2 = tmp2;
 
@@ -90,7 +93,7 @@ game *create_game(games **all_games, char *name_1, char *name_2) {
 
 
 
-game *get_game_by_player_name(Players *array_players, games **all_games, Player **cl){
+game *get_game_by_player_name(games **all_games, Player **cl){
     int i;
 
     for(i = 0; i < (*all_games)->games_count; i++){
@@ -185,8 +188,11 @@ Board *board_create() {
     temp->x_size = BOARD_SIZE;
     temp->y_size = BOARD_SIZE;
     temp->board_array = (char *)malloc(sizeof(int) * temp->x_size * temp->y_size);
+    temp->reduced_items = (char *)malloc(sizeof(int) * temp->x_size * temp->y_size);
+
     for(i = 0; i < (temp->x_size * temp->y_size); i++){
         temp->board_array[i] = '0';
+        temp->reduced_items[i] = '0';
     }
     board_fill(temp);
     board_set(temp);
@@ -228,6 +234,7 @@ void board_free(Board **poor) {
     (*poor)->x_size = 0;
     (*poor)->y_size = 0;
 
+    free((*poor)->reduced_items);
     free((*poor)->board_array);
     (*poor)->board_array = NULL;
 
@@ -281,15 +288,19 @@ void board_set(Board *bd) {
 
 char is_hit(Board *board, size_t pos){
 //    printf("Board attack position info: %s\n", board->board_array);
-    if(board->board_array[pos]== '1' || board->board_array[pos]== '0'){
+    // osetreni aby nedoslo k dvojtemu utoku na jednu pozici
+    if(board->board_array[pos]== '1' || board->board_array[pos]== '0')
+    {
         if(board->board_array[pos] == '1'){
             board->board_array[pos]='3';
+            board->reduced_items[pos]='3';
             board->ship_alive--;
             printf("Ship count: %d\n", board->ship_alive);
             return '3';
         }
         else
         {
+            board->reduced_items[pos]='2';
             board->board_array[pos]='2';
             return '2';
         }
@@ -300,22 +311,5 @@ char is_hit(Board *board, size_t pos){
     }
 
 
-}
-
-
-char* get_reduced_items(Board *bd) {
-    char* arr;
-
-    arr = (char *) malloc(sizeof (bd->board_array));
-
-    strcpy(arr, bd->board_array);
-    for (int i = 0; i < strlen(arr); ++i) {
-        if (arr[i] == SHIP_ITEM) {
-            arr[i] = EMPTY_ITEM;
-        }
- ;
-    }
-
-    return arr;
 }
 

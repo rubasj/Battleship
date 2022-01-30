@@ -13,6 +13,9 @@ public class Reader implements Runnable
     private BufferedReader reader = null;
     private CommunicationHandler handler = null;
     boolean running;
+    boolean is_valid = false;
+
+    private final String EMPTY_BOARD = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
 
     private Socket socket;
@@ -29,38 +32,14 @@ public class Reader implements Runnable
         }
     }
 
-    @Override
-    public void run(){
-//        long time_ping  = System.currentTimeMillis();
-//        long time_ping2 = System.currentTimeMillis();
-//        long curr_time;
-        String message = null;
-        String []splited = null;
-        String opp_name = null;
-        while(running)
-        {
-            boolean is_valid = false;
-            try {
-                message = reader.readLine();
-                if(message != null){
-                    System.out.println("Message accepted!");
-                    System.out.println(message);
-                    splited = handler.splitMessage(message);
-
-//                    if (!splited[0].equalsIgnoreCase("PING")) {
-//                        window.infoLB.setText(message);
-//                    }
-
-
-
-
-                    /*******************************
-                     *
-                     *
-                     *              PING
-                     *
-                     *
-                      *****************************/
+    private void ping() {
+        /*******************************
+         *
+         *
+         *              PING
+         *
+         *
+         *****************************/
 //                    curr_time = System.currentTimeMillis();
 //                    if (curr_time - time_ping2 > 5_000) {         // 5s
 //                        player.sendMessage("PING");
@@ -82,6 +61,33 @@ public class Reader implements Runnable
 //                        player.sendMessage("PING");
 //                        is_valid = true;
 //                    }
+    }
+
+
+    @Override
+    public void run(){
+//        long time_ping  = System.currentTimeMillis();
+//        long time_ping2 = System.currentTimeMillis();
+//        long curr_time;
+        String message = null;
+        String []splited = null;
+        String opp_name = null;
+
+
+        while(running)
+        {
+
+            try {
+                message = reader.readLine();
+                if(message != null){
+                    System.out.println("Message accepted!");
+                    System.out.println(message);
+                    splited = handler.splitMessage(message);
+
+
+//                    if (!splited[0].equalsIgnoreCase("PING")) {
+//                        ping();
+//                    }
 
 
                     /*              MESSAGE DECODER                */
@@ -95,31 +101,7 @@ public class Reader implements Runnable
                      **********************/
                     if (player.status == Status.DISCONNECTED  && splited[0].equalsIgnoreCase("CONNECT")) {
 
-
-                        if (splited.length == 2 && splited[1].equalsIgnoreCase("OK")) {
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-                            window.firstWindow.setContentPane(window.gamePanel);
-                            window.firstWindow.revalidate();
-                            player.status = Status.IN_LOBBY;
-                            is_valid = true;
-                        }
-
-                        if (splited.length == 3 && splited[1].equalsIgnoreCase("ERR")) {
-                            if (splited[2].equalsIgnoreCase("MAX_PLAYERS")) {
-                                window.firstWindow.setContentPane(window.loginPanel);
-                                window.connectionInfoLB.setText("Players queue is full.");
-                                window.firstWindow.revalidate();
-                                is_valid = true;
-                            } else if (splited[2].equalsIgnoreCase("ALREADY_USED")) {
-                                window.firstWindow.setContentPane(window.loginPanel);
-                                window.connectionInfoLB.setText("Nickname already used!");
-                                window.firstWindow.revalidate();
-                                is_valid = true;
-                            } else {
-                                System.out.println("Unknown problem.");
-                            }
-                        }
+                        connect(splited);
 
                     }
                     /*******************************************
@@ -131,52 +113,7 @@ public class Reader implements Runnable
                      *******************************************/
                     else if (player.status == Status.IN_LOBBY && splited[0].equalsIgnoreCase("PLAY")) {
 
-                        /* WAITING FOR GAME */
-                        if (splited.length == 2 && splited[1].equalsIgnoreCase("WAIT")) {
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-                            window.infoLB.setText("Searching game...");
-                            window.yourBTs = window.
-                                    initBTsInBoard("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                                            false);
-                            window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
-                            window.opponentBTs = window.
-                                    initBTsInBoard("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                                            false);
-                            window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
-                            System.out.println("All buttons initiated");
-                            window.yourBTsPanel.revalidate();
-                            window.opponentBTsPanel.revalidate();
-                            is_valid = true;
-
-                        }
-                        if (splited.length == 7 && splited[1].equalsIgnoreCase("START")) {
-                            System.out.println("Game started. Opponent: " + splited[2]);
-                            window.infoLB.setText("Game started. Opponent: " + splited[2]);
-                            opp_name = splited[2];
-                            /* CREATE BUTTONS */
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-                            window.yourBTs = window.initBTsInBoard(splited[3], true);
-                            window.oppLB.setText("Opponent: " + opp_name + " ships count: " + splited[6] );
-                            window.yourLB.setText("Your ship count: " + splited[5]);
-                            window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
-                            window.opponentBTs = window.initBTsInBoard("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", false);
-                            window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
-                            on_turn(splited[4]);
-                            System.out.println("All buttons initialized");
-                            window.yourBTsPanel.revalidate();
-                            window.opponentBTsPanel.revalidate();
-                            is_valid = true;
-                            player.status = Status.IN_GAME;
-
-                        }
-
-                        if (splited[1].equalsIgnoreCase("ERR")) {
-                            window.infoLB.setText("Invalid request!");
-                            is_valid = true;
-                        }
-                        is_valid = true;
+                        msgPlay(splited);
 
                     }
 
@@ -190,87 +127,37 @@ public class Reader implements Runnable
                      * *********************************/
 
                     if (player.status == Status.IN_GAME) {
+
                         if(splited[0].equalsIgnoreCase("ATTACK")) {
 
-                            if (splited.length == 6 && splited[1].equalsIgnoreCase("MISS")) {
-                                set_board(splited, Color.LIGHT_GRAY);
+                            attack(splited);
 
-                                on_turn(splited[4]);
-                            }
-                            else if (splited[1].equalsIgnoreCase("HIT") && splited.length == 7) {
-                                    set_board(splited, Color.RED);
-                                    on_turn(splited[5]);
-                                    if (splited[2].equalsIgnoreCase("OPP"))
-                                        window.oppLB.setText("Opponent: " + opp_name + " ships count: " + splited[6]);
-                                    else {
-                                        window.yourLB.setText("Your ship count: " + splited[4]);
-                                    }
-                                }
-                            else {
-                                if (splited[1].equalsIgnoreCase("INV")){
-                                    System.out.println("Invalid ATTACK.");
-                                    window.infoLB.setText( "Invalid ATTACK, try again.");
-                                } else if (splited[1].equalsIgnoreCase("NOT_YOUR_TURN")){
-                                    System.out.println("Invalid ATTACK - Not your turn.");
-                                    window.infoLB.setText( "Invalid ATTACK, Not your turn.");
-                                }
-                            }
-
-
-                            is_valid = true;
                         }
 
                         if(splited[0].equalsIgnoreCase("GAME_OVER")) {
                             System.out.println("Game ended received");
 
-                            if (Integer.parseInt(splited[1]) == 0) {
-                                window.infoLB.setText("You loose.");
-                                JOptionPane.showMessageDialog(null, "GAME OVER, You lose.");
-                            } else {
-                                window.infoLB.setText("You win.");
-                                JOptionPane.showMessageDialog(null, "GAME OVER, You win.");
-                            }
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-//                            window.yourBTsPanel.revalidate();
-//                            window.opponentBTsPanel.revalidate();
-                            window.firstWindow.setContentPane(window.gamePanel);
-                            player.status = Status.IN_LOBBY;
-                            is_valid = true;
+                            gameOver(splited);
+
                         }
 
 
                     }
 
-                    if(splited[0].equalsIgnoreCase("RECONNECT")) { //TODO reconnect
-                        try {
-                            System.out.println("RECONNECTING TO EXISTING GAME");
-                            /* CREATE BUTTONS */
-                            window.firstWindow.setContentPane(window.gamePanel);
-                            window.firstWindow.revalidate();
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-                            window.oppLB.setText("Opponent: " + splited[2]);
-                            window.yourBTs = window.initBTsInBoard(splited[4], true);
-                            window.addButtonsToBoard(window.yourBTsPanel, window.yourBTs);
-                            window.opponentBTs = window.initBTsInBoard(splited[6], false);
-                            window.addButtonsToBoard(window.opponentBTsPanel, window.opponentBTs);
-                            System.out.println("All buttons initiated");
-                            window.yourBTsPanel.revalidate();
-                            window.opponentBTsPanel.revalidate();
-                            is_valid = true;
-                            player.sendMessage("RECONNECT|OK");
+                    if (splited[0].equalsIgnoreCase("[SERVEROFF]")) {
+                        JOptionPane.showMessageDialog(null, "Server offline...");
 
-                            window.yourBTsPanel.revalidate();
-                            window.opponentBTsPanel.revalidate();
+                        window.firstWindow.setContentPane(window.loginPanel);
+                    }
 
-                        } catch (Exception e) {
-                            // ccc
-                        }
+
+                    if(splited[0].equalsIgnoreCase("RECONNECT")) {
+
+                       reconnect(splited);
                     }
 
                     if (splited[0].equalsIgnoreCase("OPP") && splited[1].equalsIgnoreCase("RECONNECTED")){
-                            window.infoLB.setText("Opponent reconnected");
+                        window.infoLB.setText("Opponent reconnected");
                         is_valid = true;
                     }
 
@@ -283,14 +170,8 @@ public class Reader implements Runnable
 //                            is_valid = true;
 //                        }
                         if (splited[0].equalsIgnoreCase("LEAVE")){
-                            window.yourBTsPanel.removeAll();
-                            window.opponentBTsPanel.removeAll();
-                            window.yourBTsPanel.revalidate();
-                            window.opponentBTsPanel.revalidate();
-                            window.infoLB.setText("Opponent left - end game.");
-                            JOptionPane.showMessageDialog(null, "Opponent left from game.");
-                            window.firstWindow.setContentPane(window.gamePanel);
-                            is_valid = true;
+                            opp_left();
+
                         }
 
                         if (splited[0].equalsIgnoreCase("DISCONNECT")) {
@@ -307,7 +188,7 @@ public class Reader implements Runnable
             }
             catch (IOException e)
             {
-                //window.connectionInfoLB.setText("Invalid server!");
+                window.connectionInfoLB.setText("Invalid server!");
             }
             if(!is_valid){
                 try {
@@ -320,30 +201,214 @@ public class Reader implements Runnable
         }
     }
 
-    private void set_board(String[] splited, Color lightGray) {
-        if (splited[2].equalsIgnoreCase("YOU")) {
-            int position = Integer.parseInt(splited[3]);
-            window.yourBTs[position].setBackground(lightGray);
+    private void opp_left() {
+        window.yourBTsPanel.removeAll();
+        window.opponentBTsPanel.removeAll();
+        window.yourBTsPanel.revalidate();
+        window.opponentBTsPanel.revalidate();
+        window.infoLB.setText("Opponent left - end game.");
+        JOptionPane.showMessageDialog(null, "Opponent left from game.");
+        window.firstWindow.setContentPane(window.gamePanel);
+        is_valid = true;
+    }
 
-            window.yourBTs[position].setEnabled(false);         // TODO vyresit jestli muze nemuze hrac zautocit
+    private void gameOver(String[] splited) {
+        if (Integer.parseInt(splited[1]) == 0) {
+            window.infoLB.setText("You loose.");
+            JOptionPane.showMessageDialog(null, "GAME OVER, You lose.");
         } else {
-            int position = Integer.parseInt(splited[3]);
-            window.opponentBTs[position].setText("X");
-            window.opponentBTs[position].setBackground(lightGray);
-            window.opponentBTs[position].setEnabled(false);
+            window.infoLB.setText("You win.");
+            JOptionPane.showMessageDialog(null, "GAME OVER, You win.");
+        }
+        window.yourBTsPanel.removeAll();
+        window.opponentBTsPanel.removeAll();
+        window.yourBTsPanel.revalidate();
+        window.opponentBTsPanel.revalidate();
+        window.firstWindow.setContentPane(window.gamePanel);
+        player.status = Status.IN_LOBBY;
+        is_valid = true;
+    }
+
+    private void reconnect(String[] splited) {
+        if (splited[1].equalsIgnoreCase("1")) {
+            connectToLobby("You are reconnected now.");
+        }
+        try {
+            System.out.println("RECONNECTING TO EXISTING GAME");
+            /* CREATE BUTTONS */
+            window.firstWindow.setContentPane(window.gamePanel);
+            window.firstWindow.revalidate();
+            window.yourBTsPanel.removeAll();
+            window.opponentBTsPanel.removeAll();
+            window.oppLB.setText("Opponent: " + splited[2]);
+            window.clientButtons = window.initGameButtons(splited[4], false);// ok
+            window.addButtonsToBoard(window.yourBTsPanel, window.clientButtons);
+            window.oppButtons = window.initGameButtons(splited[6], true); //
+            on_turn(splited[1]);
+            window.addButtonsToBoard(window.opponentBTsPanel, window.oppButtons);
+            System.out.println("All buttons initiated");
+            window.yourBTsPanel.revalidate();
+            window.opponentBTsPanel.revalidate();
+            is_valid = true;
+            player.sendMessage("RECONNECT|OK");
+            player.status = Status.IN_GAME;
+            window.yourBTsPanel.revalidate();
+            window.opponentBTsPanel.revalidate();
+
+        } catch (Exception e) {
+            // ccc
         }
     }
+
+
+    private void attack(String[] splited) {
+
+        if (splited.length == 6 && splited[1].equalsIgnoreCase("2")) {
+            setBoardItem(splited, Color.LIGHT_GRAY);
+
+            on_turn(splited[4]);
+        }
+        else if (splited[1].equalsIgnoreCase("3") && splited.length == 7) {
+            setBoardItem(splited, Color.RED);
+            on_turn(splited[5]);
+            if (splited[2].equalsIgnoreCase("OPP"))
+                window.oppLB.setText("Opponent: " + window.oppNameString + " ships count: " + splited[6]);
+            else {
+                window.yourLB.setText("Your ship count: " + splited[4]);
+            }
+        }
+        else {
+            if (splited[1].equalsIgnoreCase("INV")){
+                System.out.println("Invalid ATTACK.");
+                window.infoLB.setText( "Invalid ATTACK, try again.");
+            } else if (splited[1].equalsIgnoreCase("NOT_YOUR_TURN")){
+                System.out.println("Invalid ATTACK - Not your turn.");
+                window.infoLB.setText( "Invalid ATTACK, Not your turn.");
+            }
+        }
+
+
+        is_valid = true;
+
+
+    }
+
+
+    private void msgPlay(String[] splited) {
+        /* WAITING FOR GAME */
+        if (splited.length == 2 && splited[1].equalsIgnoreCase("WAIT")) {
+            window.yourBTsPanel.removeAll();
+            window.opponentBTsPanel.removeAll();
+            window.infoLB.setText("Searching game...");
+
+            window.clientButtons = window.initGameButtons(EMPTY_BOARD, false);
+            window.addButtonsToBoard(window.yourBTsPanel, window.clientButtons);
+            window.oppButtons = window.initGameButtons(EMPTY_BOARD, true);
+            window.addButtonsToBoard(window.opponentBTsPanel, window.oppButtons);
+            System.out.println("All buttons initiated");
+            window.yourBTsPanel.revalidate();
+            window.opponentBTsPanel.revalidate();
+            is_valid = true;
+
+        }
+        if (splited.length == 7 && splited[1].equalsIgnoreCase("START")) {
+            System.out.println("Game started. Opponent: " + splited[2]);
+            window.infoLB.setText("Game started. Opponent: " + splited[2]);
+            window.oppNameString = splited[2];
+            /* CREATE BUTTONS */
+            window.yourBTsPanel.removeAll();
+            window.opponentBTsPanel.removeAll();
+
+            window.clientButtons = window.initGameButtons(splited[3], false);
+            window.oppLB.setText("Opponent: " + window.oppNameString + " ships count: " + splited[6] );
+            window.yourLB.setText("Your ship count: " + splited[5]);
+            window.addButtonsToBoard(window.yourBTsPanel, window.clientButtons);
+            window.oppButtons = window.initGameButtons(EMPTY_BOARD, true);
+            window.addButtonsToBoard(window.opponentBTsPanel, window.oppButtons);
+            on_turn(splited[4]);
+            System.out.println("All buttons initialized");
+            window.yourBTsPanel.revalidate();
+            window.opponentBTsPanel.revalidate();
+            is_valid = true;
+            player.status = Status.IN_GAME;
+
+        }
+
+        if (splited[1].equalsIgnoreCase("ERR")) {
+            window.infoLB.setText("Invalid request!");
+            is_valid = true;
+        }
+        is_valid = true;
+
+
+    }
+
+    /**
+     * For success connection client to server
+     * @param splited recv message from server
+     */
+    private void connect(String[] splited) {
+
+        if (splited.length == 2 && splited[1].equalsIgnoreCase("OK")) {
+            connectToLobby("You are connected now.");
+        }
+
+        if (splited.length == 3 && splited[1].equalsIgnoreCase("ERR")) {
+            if (splited[2].equalsIgnoreCase("MAX_PLAYERS")) {
+                window.firstWindow.setContentPane(window.loginPanel);
+                window.connectionInfoLB.setText("Players queue is full.");
+                window.firstWindow.revalidate();
+                is_valid = true;
+            } else if (splited[2].equalsIgnoreCase("ALREADY_USED")) {
+                window.firstWindow.setContentPane(window.loginPanel);
+                window.connectionInfoLB.setText("Nickname already used!");
+                window.firstWindow.revalidate();
+                is_valid = true;
+            } else {
+                System.out.println("Unknown problem.");
+            }
+        }
+
+
+    }
+
+    private void connectToLobby(String s) {
+
+        window.infoLB.setText(s);
+        window.yourBTsPanel.removeAll();
+        window.opponentBTsPanel.removeAll();
+        window.firstWindow.setContentPane(window.gamePanel);
+        window.firstWindow.revalidate();
+        player.status = Status.IN_LOBBY;
+    }
+
+    private void setBoardItem(String[] splited, Color color) {
+        int position = Integer.parseInt(splited[3]);
+
+        if (splited[2].equalsIgnoreCase("YOU")) {
+            window.clientButtons[position].setBackground(color);
+
+            window.clientButtons[position].setEnabled(false);
+        } else {
+            window.oppButtons[position].setText("X");
+            window.oppButtons[position].setBackground(color);
+            window.oppButtons[position].setEnabled(false);
+        }
+    }
+
+
     private void on_turn(String splited) {
         if (Integer.parseInt(splited) == 0) {
-            for (int i = 0; i < window.opponentBTs.length; i++ ) {
-                window.opponentBTs[i].setEnabled(false);
+            for (int i = 0; i < window.oppButtons.length; i++ ) {
+                window.oppButtons[i].setEnabled(false);
             }
         } else {
-            for (int i = 0; i < window.opponentBTs.length; i++ ) {
-                if (window.opponentBTs[i].getText().equalsIgnoreCase("X"))
+            for (int i = 0; i < window.oppButtons.length; i++ ) {
+                if (window.oppButtons[i].getText().equalsIgnoreCase("X"))
+
                     continue;
 
-                window.opponentBTs[i].setEnabled(true);
+                window.oppButtons[i].setEnabled(true);
             }
         }
     }
@@ -353,7 +418,7 @@ public class Reader implements Runnable
 		    running = false;
 			reader.close();
 		} catch (IOException e) {
-
+            //
 		}
 	}
 }

@@ -19,11 +19,12 @@ public class Window {
     public JPanel controlPanel;
 
 
+
     /**
      * Game Boards
      */
-    public JButton [] opponentBTs;
-    public JButton [] yourBTs;
+    public JButton[] oppButtons;
+    public JButton[] clientButtons;
 
     /** Butons */
     public JButton findGameBT;
@@ -32,6 +33,8 @@ public class Window {
     /**
      * Labels
      */
+    public String oppNameString;
+    public String clientNameString;
     public JLabel infoLB;
     public JLabel connectionInfoLB;
     public JLabel oppLB;
@@ -55,7 +58,7 @@ public class Window {
         JLabel nicknameLabel = new JLabel("Nick: ");
 
         final JTextField nicknameText = new JTextField("jenda");
-        final JTextField ipText = new JTextField("147.228.67.10");
+        final JTextField ipText = new JTextField("147.228.63.10");
         final JTextField portText = new JTextField("4757");
 
 
@@ -126,6 +129,9 @@ public class Window {
         firstWindow.setVisible(true);
     }
 
+
+
+
     public void getControlButtons(){
         findGameBT = new JButton("Find game!");
         findGameBT.addActionListener(e-> {
@@ -175,57 +181,45 @@ public class Window {
     }
 
     /**
-     * Set buttons
-
-     * @return buttons
+     *
+     * @param board board in string
+     * @param enabledForAttack info, that board is for current client or for opp board
+     * @return buttons panel
      */
-    public JButton[] initBTsInBoard(String board, boolean isAlly){
+    public JButton[] initGameButtons(String board, boolean enabledForAttack){
         JButton [] buttons = new JButton[100];
-        JButton button;
-        for(int i = 0; i < 100; i++){
-            if(isAlly){
+        for(int i = 0; i < 100; i++)
+        {
+            buttons[i] = new JButton("");
+            buttons[i].setEnabled(false);
 
-                if(board.charAt(i) == '0')
-                    buttons[i] = new JButton("");
-                if(board.charAt(i) == '1') {
-                    buttons[i] = new JButton("X");
-                    buttons[i].setBackground(Color.GREEN);
-                }
-                if(board.charAt(i) == '2'){
-                    buttons[i] = new JButton("");
+            if(board.charAt(i) == '0') {
+                buttons[i].setBackground(Color.CYAN);
 
+                if (enabledForAttack) {
+                    setTextBT(buttons[i], i);
                 }
-                if(board.charAt(i) == '3'){
-                    buttons[i] = new JButton("X");
-                    buttons[i].setBackground(Color.RED);
-                }
+                buttons[i].setEnabled(enabledForAttack);
+
             }
-            else{
-                if(board.charAt(i) == '0'){
-                    button = new JButton("");
-                    setTextBT(button, i);
-                    buttons[i] = button;
-                }
-                if(board.charAt(i) == '1'){
-                    button = new JButton("X");
-                    setTextBT(button, i);
-                    buttons[i] = button;
-                }
-                if(board.charAt(i) == '2'){
-                    button = new JButton("");
-                    button.setBackground(Color.YELLOW);
-                    setTextBT(button, i);
-                    buttons[i] = button;
-                }
-                if(board.charAt(i) == '3'){
-                    button = new JButton("X");
-                    button.setBackground(Color.RED);
-                    setTextBT(button, i);
-                    buttons[i] = button;
-                }
-                
+
+            if(board.charAt(i) == '1') {
+                buttons[i].setText("X");
+                buttons[i].setBackground(Color.GREEN);
             }
-            
+
+            if(board.charAt(i) == '2'){
+                buttons[i].setText("X");
+                buttons[i].setBackground(Color.LIGHT_GRAY);
+
+            }
+
+            if(board.charAt(i) == '3'){
+                buttons[i].setText("X");
+                buttons[i].setBackground(Color.RED);
+
+            }
+
         }
         return buttons;
     }
