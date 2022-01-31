@@ -128,7 +128,8 @@ public class Reader implements Runnable
                     }
 
                     long ping = System.currentTimeMillis() - ping_time;
-                    if (ping > 60000) {
+                    if (ping > 10000) {
+                        JOptionPane.showMessageDialog(null, "ERR> Wrong connection from server.. Client disconnected.");
                         user.endConnection();
                     }
 
