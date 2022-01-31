@@ -41,6 +41,7 @@ public class Reader implements Runnable
     public void run(){
 
         cc.start();
+        cc.running = true;
         String message = null;
         String []splited = null;
         String opp_name = null;
