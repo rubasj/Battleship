@@ -60,6 +60,7 @@ public class Client
     public void endConnection(){
         try {
 
+            cc.running = false;
             cc.join();
             writer.close();
             reader.stop();

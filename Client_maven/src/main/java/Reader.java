@@ -45,14 +45,13 @@ public class Reader implements Runnable
         String []splited = null;
         String opp_name = null;
 
-        long curr_time = 0;
         long ping_time = 0;
         while(running)
         {
 
             try {
                 message = reader.readLine();
-                if(message != null){
+                if(message != null || message.length() < 400){
                     System.out.println("Message accepted!");
                     System.out.println(message);
                     splited = handler.splitMessage(message);
@@ -129,7 +128,7 @@ public class Reader implements Runnable
 
                     long ping = System.currentTimeMillis() - ping_time;
                     if (ping > 10000) {
-                        JOptionPane.showMessageDialog(null, "ERR> Wrong connection from server.. Client disconnected.");
+                        JOptionPane.showMessageDialog(null, "ERR> Wrong connection from server.. You are disconnected.");
                         user.endConnection();
                     }
 
@@ -140,6 +139,11 @@ public class Reader implements Runnable
 
                     if (splited[0].equalsIgnoreCase("OPP") && splited[1].equalsIgnoreCase("RECONNECTED")){
                         window.infoLB.setText("Opponent reconnected");
+                        is_valid = true;
+                    }
+
+                    if (splited[0].equalsIgnoreCase("OPP") && splited[1].equalsIgnoreCase("DISCONNECTED")){
+                        window.infoLB.setText("Opponent disconnected .. waiting for reconnect.");
                         is_valid = true;
                     }
 
@@ -415,9 +419,11 @@ public class Reader implements Runnable
 
     public void stop() {
 		try {
+		    cc.join();
+		    cc.running = false;
 		    running = false;
 			reader.close();
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
             //
 		}
 	}

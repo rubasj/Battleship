@@ -5,6 +5,7 @@ public class CheckerConn extends Thread{
     private Window window;
     private Client client;
 
+    public boolean running;
 //    public long last_check;
 
     public CheckerConn(Window window , Client client){
@@ -15,7 +16,8 @@ public class CheckerConn extends Thread{
 
     @Override
     public void run() {
-        while(true){
+        running = true;
+        while(running){
 
             try {
                 Thread.sleep(5000);
@@ -39,11 +41,5 @@ public class CheckerConn extends Thread{
         }
     }
 
-//    public synchronized void set_time(long time) {
-//        last_check = time;
-//    }
-//
-//    private synchronized long get_time() {
-//        return last_check;
-//    }
+
 }
