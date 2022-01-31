@@ -119,6 +119,7 @@ public class Reader implements Runnable
 
                     if (splited[0].equalsIgnoreCase("[SERVEROFF]")) {
                         JOptionPane.showMessageDialog(null, "Server offline...");
+                        cc.running = false;
                         user.endConnection();
                     }
                     if (splited[0].equalsIgnoreCase("[PING]")) {
@@ -129,6 +130,7 @@ public class Reader implements Runnable
                     long ping = System.currentTimeMillis() - ping_time;
                     if (ping > 10000) {
                         JOptionPane.showMessageDialog(null, "ERR> Wrong connection from server.. You are disconnected.");
+                        cc.running = false;
                         user.endConnection();
                     }
 
@@ -148,13 +150,6 @@ public class Reader implements Runnable
                     }
 
 
-//                        if(splited[0].equalsIgnoreCase("DISCONNECT")){
-//                            window.yourBTsPanel.removeAll();
-//                            window.opponentBTsPanel.removeAll();
-//                            window.yourBTsPanel.revalidate();
-//                            window.opponentBTsPanel.revalidate();
-//                            is_valid = true;
-//                        }
                         if (splited[0].equalsIgnoreCase("LEAVE")){
                             ping_time = System.currentTimeMillis();
                             opp_left();
@@ -171,13 +166,13 @@ public class Reader implements Runnable
                             window.firstWindow.setContentPane(window.loginPanel);
                             window.firstWindow.revalidate();
                             user.status = Status.DISCONNECTED;
+                            cc.running = false;
                             user.endConnection();
+                            socket.close();
                             is_valid = true;
                         }
                         is_valid = true;
                     }
-                    
-
             }
             catch (IOException e)
             {
@@ -419,11 +414,9 @@ public class Reader implements Runnable
 
     public void stop() {
 		try {
-		    cc.join();
-		    cc.running = false;
 		    running = false;
 			reader.close();
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
             //
 		}
 	}

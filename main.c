@@ -96,6 +96,7 @@ void invalid_mess_process(int fd, fd_set c_s) {
 //        if(this_client->invalid_mess_number >= 3){
 //            exit_client(&cls, &w_p, &a_g, fd, &this_client, c_s);
 //        }
+        printf("Unexpected message format.\n");
     }
     else{
         exit_client(&cls, &w_p, &a_g, fd, &this_client, c_s);

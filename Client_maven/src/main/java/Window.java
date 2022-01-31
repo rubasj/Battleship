@@ -59,7 +59,7 @@ public class Window {
         JLabel nicknameLabel = new JLabel("Nick: ");
 
         final JTextField nicknameText = new JTextField("jenda");
-        final JTextField ipText = new JTextField("147.228.63.10");
+        final JTextField ipText = new JTextField("147.228.67.108");
         final JTextField portText = new JTextField("4757");
 
 
