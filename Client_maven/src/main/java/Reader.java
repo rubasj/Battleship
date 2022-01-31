@@ -51,7 +51,7 @@ public class Reader implements Runnable
 
             try {
                 message = reader.readLine();
-                if(message != null || message.length() < 400){
+                if(message != null && message.length() < 400){
                     System.out.println("Message accepted!");
                     System.out.println(message);
                     splited = handler.splitMessage(message);
