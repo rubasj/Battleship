@@ -6,14 +6,14 @@
 #include "game.h"
 
 
-void create_wanna_play(game_finder **wanna_plays) {
-    (*wanna_plays) = calloc(1, sizeof(game_finder));
-    (*wanna_plays) -> size = 0;
-    (*wanna_plays) -> socket_IDs = calloc(1, sizeof(int));
+void create_game_finder(game_finder **game_finders) {
+    (*game_finders) = calloc(1, sizeof(game_finder));
+    (*game_finders) -> size = 0;
+    (*game_finders) -> socket_IDs = calloc(1, sizeof(int));
 }
 
 
-void add_wanna_play(game_finder **game_finder_db, int socket_ID) {
+void add_game_finder(game_finder **game_finder_db, int socket_ID) {
     (*game_finder_db) -> size++;
     printf("Player [%d] wants to play\n", socket_ID);
     (*game_finder_db) -> socket_IDs = realloc((*game_finder_db) -> socket_IDs, (*game_finder_db) -> size * sizeof(int));
@@ -22,20 +22,20 @@ void add_wanna_play(game_finder **game_finder_db, int socket_ID) {
 }
 
 
-void remove_wanna_play(game_finder **wanna_plays, int socket_ID) {
+void remove_game_finder(game_finder **game_finders, int socket_ID) {
     int i;
     int socket;
-    int count = (*wanna_plays) -> size;
+    int count = (*game_finders) -> size;
     for(i = 0; i < count; i++) {
-        socket = (*wanna_plays) -> socket_IDs[i];
+        socket = (*game_finders) -> socket_IDs[i];
         if (socket == socket_ID) {
-            (*wanna_plays) -> size--;
+            (*game_finders) -> size--;
             if (i < (count - 1)) {
-                (*wanna_plays) -> socket_IDs[i] = (*wanna_plays) -> socket_IDs[((*wanna_plays) -> size)];
+                (*game_finders) -> socket_IDs[i] = (*game_finders) -> socket_IDs[((*game_finders) -> size)];
             }
-            (*wanna_plays) -> socket_IDs = realloc((*wanna_plays) -> socket_IDs, (*wanna_plays) -> size * sizeof(game_finder));
+            (*game_finders) -> socket_IDs = realloc((*game_finders) -> socket_IDs, (*game_finders) -> size * sizeof(game_finder));
             printf("Player [%d] removed from queue\n", socket_ID);
-            printf("Info: %d Player(s) want to play game\n\n", (*wanna_plays) -> size);
+            printf("Info: %d Player(s) want to play game\n\n", (*game_finders) -> size);
             return;
         }
     }

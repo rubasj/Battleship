@@ -50,13 +50,13 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
 /** ***************************************
  * @brief processing of Player exit
  * @param array_clients 
- * @param wanna_plays 
+ * @param game_finders
  * @param all_games 
  * @param fd 
  * @param cl 
  *  ***************************************
  */
-void exit_client(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s);
+void exit_client(Players **array_clients, game_finder **game_finders, games **all_games, int fd, Player **cl, fd_set c_s);
 
 /** ***************************************
  * @brief Processing message about endind of round
@@ -108,4 +108,8 @@ void inform_opponent_about_disconnect(Players **array_clients, games *all_games,
  * @param fd 
  */
 void inform_opponent_about_leave(Players **array_clients, games *all_games, int fd);
+
+void game_leave(Players **array_clients, game_finder **game_finders, games **all_games, int fd, Player **cl, fd_set c_s);
+
+
 #endif

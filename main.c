@@ -24,7 +24,7 @@
 #define STAT_CONNECT  1 //1 pro on, 0 pro off
 #define PING_INTERVAL 5
 #define PING_TIMEOUT 60
-#define MAX_TIME_WITHOUT_RECONNECT 2
+#define MAX_TIME_WITHOUT_RECONNECT 5
 #define DEFAULT_PORT 4757
 
 
@@ -87,7 +87,7 @@ void send_message(int client_socket, char *message) {
 void invalid_mess_process(int fd, fd_set c_s) {
     printf("Invalid message from Player [%d]\n\n", fd);
     pthread_mutex_lock(&my_mutex);
-    Player *this_client = get_player_by_socket_ID(cls, fd);
+    Player *this_client = get_player_by_socket(cls, fd);
 
     if(this_client != NULL){
 
@@ -180,7 +180,7 @@ int main(int argc , char *argv[]) {
 
     players_create(&cls);
     init_games(&a_g);
-    create_wanna_play(&w_p);
+    create_game_finder(&w_p);
 
     int server_socket, client_socket, len_addr, a2read, return_value, fd;
     pthread_t thr;
@@ -255,7 +255,7 @@ int main(int argc , char *argv[]) {
                 else {
                     int int_ioctl = ioctl(fd, FIONREAD, &a2read);
                     if (int_ioctl >= 0) {
-                        Player *cl = get_player_by_socket_ID(cls, fd);
+                        Player *cl = get_player_by_socket(cls, fd);
 
                         if (a2read > 0) {
                             if (FD_ISSET(fd, &errfd)) {
@@ -396,7 +396,7 @@ void *socket_handler(void *skt) {
         return NULL;
     }
 
-    Player *client = get_player_by_socket_ID(cls, fd);
+    Player *client = get_player_by_socket(cls, fd);
 
 
     int validate_message = check_input(new_mess);
@@ -503,16 +503,6 @@ void *socket_handler(void *skt) {
             invalid_mess_process(fd, c_s);
         }
     }
-
-    else if (strcmp(type_message, "PING") == 0) {
-        if(mess_tokens_num == 1){
-            pthread_mutex_lock(&my_mutex);
-            get_player_by_socket_ID(cls, fd)->connected = 1;
-            printf("Client [%d] pinged\n\n", fd);
-            pthread_mutex_unlock(&my_mutex);
-        }
-    }
-
     else if (strcmp(type_message, "EXIT") == 0) {
         if(client != NULL) {
             if(mess_tokens_num != 1){
@@ -529,6 +519,22 @@ void *socket_handler(void *skt) {
             invalid_mess_process(fd, c_s);
         }
     }
+    else if (strcmp(type_message, "LEAVE") == 0) {
+        if(client != NULL) {
+            if(mess_tokens_num != 1){
+                invalid_mess_process(fd, c_s);
+                free(mess);
+                return NULL;
+            }
+            FD_CLR(fd, &c_s);
+            pthread_mutex_lock(&my_mutex);
+            game_leave(&cls, &w_p, &a_g, fd, &client, c_s);
+            pthread_mutex_unlock(&my_mutex);
+        }
+        else {
+            invalid_mess_process(fd, c_s);
+        }
+    }
 
     else if (strcmp(type_message, "RECONNECT") == 0) {
         printf("Main: Reconnect.");
@@ -539,8 +545,6 @@ void *socket_handler(void *skt) {
                 return NULL;
             }
             pthread_mutex_lock(&my_mutex);
-            printf("Main: Reconnect 2.");
-
             process_reconnect_mess(split_mess[1], &cls, &w_p, &a_g, fd, c_s);
             pthread_mutex_unlock(&my_mutex);
         }
@@ -551,7 +555,7 @@ void *socket_handler(void *skt) {
     else if (strcmp(type_message, "PING") == 0) {
         if(mess_tokens_num == 1){
             pthread_mutex_lock(&my_mutex);
-            get_player_by_socket_ID(cls, fd)->connected = 1;
+            get_player_by_socket(cls, fd)->connected = 1;
             printf("Player [%d] pinged\n\n", fd);
             pthread_mutex_unlock(&my_mutex);
         }
@@ -564,65 +568,63 @@ void *socket_handler(void *skt) {
 
 
 void *check_connectivity(void *args) {
-//    if(check_conn == 0){
-//        pthread_exit(0);
-//        return NULL;
-//    }
-//
-//    Player *cli = (Player*) args;
-//
-//    if(cli == NULL){
-//        pthread_exit(0);
-//        return NULL;
-//    }
-//
-//    int socket_ID = cli->socket_ID;
-//    Player *cl = NULL;
-//    int disconnected_time = 0;
-//    char name[30];
-//    strcpy(name, cli -> name);
-//
-//    while(1) {
-//        sleep(PING_INTERVAL);
-//        cl = get_player_by_socket_ID(cls, socket_ID);
-//        if (cl == NULL) {
-//            printf("Client with socket ID %d is null, deleting thread\n\n", socket_ID);
-//            break;
-//        }
-//
-//        if (strcmp(cl->name, name) != 0)
-//            break; //neco se pokazilo
-//        if (cl->connected == 1) {
-//            pthread_mutex_lock(&my_mutex);
-//            cl->connected = 0;
-//            pthread_mutex_unlock(&my_mutex);
-//            if (disconnected_time > MAX_TIME_WITHOUT_RECONNECT) {
-//                player_reconnect(&cls, socket_ID, &a_g);
-//            }
-//            disconnected_time = 0;
-//            cl->disconnected_time = disconnected_time;
-//        }
-//        else {
-//            if(cl->state == 1) { //pokud je ve fronte na hru, tak ho z fronty odstranim
-//                remove_wanna_play(&w_p, cl -> socket_ID);
-//                cl->state = 0;
-//            }
-//
-//            if(cl->state == 3){
-//                inform_opponent_about_disconnect(&cls, a_g, socket_ID);
-//            }
-//
-//            if (cl->disconnected_time >= PING_TIMEOUT) {
-//                exit_client(&cls, &w_p, &a_g, socket_ID, &cl, c_s);
-//                break;
-//            }
-//
-//            disconnected_time += PING_INTERVAL;
-//            cl->disconnected_time = disconnected_time;
-//        }
-//
-//        if(cl->check_ping == 1)
-//            send_message(cl->socket_ID, "[PING]\n");
-//    }
-//    pthread_exit(0);
+    if(check_conn == 0){;
+        return NULL;
+    }
+
+    Player *cli = (Player*) args;
+
+    if(cli == NULL){
+        return NULL;
+    }
+
+    int socket_ID = cli->socket_ID;
+    Player *cl = NULL;
+    int disconnected_time = 0;
+
+    while(1) {
+        sleep(PING_INTERVAL);
+        cl = get_player_by_socket(cls, socket_ID);
+        if (cl == NULL) {
+            printf("Client with socket ID %d is null, deleting thread\n\n", socket_ID);
+            break;
+        }
+
+
+        if (cl->connected == 1) {
+            pthread_mutex_lock(&my_mutex);
+            cl->connected = 0;
+            pthread_mutex_unlock(&my_mutex);
+            if (disconnected_time > MAX_TIME_WITHOUT_RECONNECT) {
+                player_reconnect(&cls, socket_ID, &a_g);
+            }
+            disconnected_time = 0;
+            cl->disconnected_time = disconnected_time;
+        }
+        else {
+
+            if(cl->state == 1) { //pokud je ve fronte na hru, tak ho z fronty odstranim
+                remove_game_finder(&w_p, cl -> socket_ID);
+                cl->state = 0;
+            }
+
+            if(cl->state == 3){
+                inform_opponent_about_disconnect(&cls, a_g, socket_ID);
+            }
+
+            if (cl->disconnected_time >= PING_TIMEOUT) {
+                exit_client(&cls, &w_p, &a_g, socket_ID, &cl, c_s);
+                break;
+            }
+
+
+            disconnected_time += PING_INTERVAL;
+            cl->disconnected_time = disconnected_time;
+        }
+
+        if(cl->check_ping == 1)
+            send_message(cl->socket_ID, "[PING]\n");
+    }
 }
+
+

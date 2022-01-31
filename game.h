@@ -8,10 +8,10 @@
 
 /** ***************************************
  * @brief Create game_finder
- * @param wanna_plays
+ * @param game_finders
  * *************************************** 
  */
-void create_wanna_play(game_finder **wanna_plays);
+void create_game_finder(game_finder **game_finders);
 
 /** ***************************************
  * @brief Add socket to game_finder
@@ -19,15 +19,15 @@ void create_wanna_play(game_finder **wanna_plays);
  * @param socket_ID 
  *  ***************************************
  */
-void add_wanna_play(game_finder **game_finder_db, int socket_ID);
+void add_game_finder(game_finder **game_finder_db, int socket_ID);
 
 /** ***************************************
  * @brief Remove Player from wanna plays
- * @param wanna_plays 
+ * @param game_finders
  * @param socket_ID 
  *  ***************************************
  */
-void remove_wanna_play(game_finder **wanna_plays, int socket_ID);
+void remove_game_finder(game_finder **game_finders, int socket_ID);
 
 /** ***************************************
  * @brief Create a games object

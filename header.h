@@ -8,7 +8,7 @@
 
 typedef enum {
     IN_LOBBY, 			//0
-    WANNA_PLAY,			//1
+    FINDING_GAME,			//1
     DISCONNECT,			//2
     PLAYING,			//3
 } STATES;

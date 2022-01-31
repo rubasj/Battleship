@@ -15,6 +15,8 @@
 
 
 
+
+
 /** ***************************************
  * @brief Create a Players object
  * @param array_players
@@ -38,7 +40,7 @@ void player_create(Player **pl, char *name, int socket_ID);
  * @return Player*
  *  ***************************************
  */
-Player *get_player_by_socket_ID(Players *array_players, int socket_ID);
+Player *get_player_by_socket(Players *array_players, int socket_ID);
 
 /** ***************************************
  * @brief Get the Player by name
@@ -56,7 +58,7 @@ Player *get_player_by_name(Players *array_players, char *name);
  * @return int
  *  ***************************************
  */
-int player_name_exists (Players *array_players, char *name);
+int player_check_name_exists (Players *array_players, char *name);
 
 /** ***************************************
  * @brief add Player to structure
@@ -81,7 +83,6 @@ void player_remove(Players **array_player, int socket_ID);
  *  ***************************************
  */
 void player_reconnect(Players **array_players, int socketID, games **all_games);
-
 
 
 

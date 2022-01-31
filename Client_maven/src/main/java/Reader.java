@@ -4,27 +4,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Timer;
 
 public class Reader implements Runnable
 {
     final long max_sec = 20;
     private Window window = null;
-    private Client player = null;
+    private Client user = null;
     private BufferedReader reader = null;
     private CommunicationHandler handler = null;
     boolean running;
     boolean is_valid = false;
 
+    private CheckerConn cc;
+
     private final String EMPTY_BOARD = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
 
     private Socket socket;
-    public Reader(Socket socket, Window window, CommunicationHandler handler, Client Player){
+    public Reader(Socket socket, Window window, CommunicationHandler handler, Client user){
         this.handler = handler;
-        this.player = Player;
+        this.user = user;
         this.window = window;
         this.socket = socket;
         this.running = true;
+        this.cc = new CheckerConn(this.window, this.user);
         try {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (Exception e) {
@@ -32,48 +36,17 @@ public class Reader implements Runnable
         }
     }
 
-    private void ping() {
-        /*******************************
-         *
-         *
-         *              PING
-         *
-         *
-         *****************************/
-//                    curr_time = System.currentTimeMillis();
-//                    if (curr_time - time_ping2 > 5_000) {         // 5s
-//                        player.sendMessage("PING");
-//
-//                    }
-//
-//                    if (curr_time - time_ping > 20_000) {         // 20s - max interval pingu ze serveru
-//                        player.sendMessage("DISCONNECT");
-//                        window.firstWindow.setContentPane(window.loginPanel);
-//                        window.firstWindow.revalidate();
-//                        player.status = Status.DISCONNECTED;
-//                        is_valid = true;
-//                        player.endConnection();
-//
-//                    }
-//
-//                    if (splited.length == 1 && splited[0].equalsIgnoreCase("PING")) {
-//                        time_ping = System.currentTimeMillis();
-//                        player.sendMessage("PING");
-//                        is_valid = true;
-//                    }
-    }
-
 
     @Override
     public void run(){
-//        long time_ping  = System.currentTimeMillis();
-//        long time_ping2 = System.currentTimeMillis();
-//        long curr_time;
+
+        cc.start();
         String message = null;
         String []splited = null;
         String opp_name = null;
 
-
+        long curr_time = 0;
+        long ping_time = 0;
         while(running)
         {
 
@@ -85,13 +58,14 @@ public class Reader implements Runnable
                     splited = handler.splitMessage(message);
 
 
-//                    if (!splited[0].equalsIgnoreCase("PING")) {
-//                        ping();
-//                    }
-
-
                     /*              MESSAGE DECODER                */
 
+//                    if (user.status != Status.DISCONNECTED) {
+//                        if (ping_time - curr_time > 20000) {
+//                            JOptionPane.showMessageDialog(null, "Connection lost..");
+//                            user.endConnection();
+//                        }
+//                    }
                     /*********************
                      *
                      *
@@ -99,8 +73,8 @@ public class Reader implements Runnable
                      *
                      *
                      **********************/
-                    if (player.status == Status.DISCONNECTED  && splited[0].equalsIgnoreCase("CONNECT")) {
-
+                    if (user.status == Status.DISCONNECTED  && splited[0].equalsIgnoreCase("CONNECT")) {
+                        ping_time = System.currentTimeMillis();
                         connect(splited);
 
                     }
@@ -111,8 +85,8 @@ public class Reader implements Runnable
                      *
                      *
                      *******************************************/
-                    else if (player.status == Status.IN_LOBBY && splited[0].equalsIgnoreCase("PLAY")) {
-
+                    else if (user.status == Status.IN_LOBBY && splited[0].equalsIgnoreCase("PLAY")) {
+                        ping_time = System.currentTimeMillis();
                         msgPlay(splited);
 
                     }
@@ -126,17 +100,17 @@ public class Reader implements Runnable
                      *
                      * *********************************/
 
-                    if (player.status == Status.IN_GAME) {
+                    if (user.status == Status.IN_GAME) {
 
                         if(splited[0].equalsIgnoreCase("ATTACK")) {
-
+                            ping_time = System.currentTimeMillis();
                             attack(splited);
 
                         }
 
                         if(splited[0].equalsIgnoreCase("GAME_OVER")) {
                             System.out.println("Game ended received");
-
+                            ping_time = System.currentTimeMillis();
                             gameOver(splited);
 
                         }
@@ -146,13 +120,15 @@ public class Reader implements Runnable
 
                     if (splited[0].equalsIgnoreCase("[SERVEROFF]")) {
                         JOptionPane.showMessageDialog(null, "Server offline...");
-
-                        window.firstWindow.setContentPane(window.loginPanel);
+                        user.endConnection();
+                    }
+                    if (splited[0].equalsIgnoreCase("[PING]")) {
+                        ping_time = System.currentTimeMillis();
+                        System.out.println("PING from server OK.");
                     }
 
-
                     if(splited[0].equalsIgnoreCase("RECONNECT")) {
-
+                        ping_time = System.currentTimeMillis();
                        reconnect(splited);
                     }
 
@@ -170,15 +146,22 @@ public class Reader implements Runnable
 //                            is_valid = true;
 //                        }
                         if (splited[0].equalsIgnoreCase("LEAVE")){
+                            ping_time = System.currentTimeMillis();
                             opp_left();
 
                         }
 
+                        if (splited[0].equalsIgnoreCase("GAME_EXIT")){
+                            user_left();
+
+                        }
+
+
                         if (splited[0].equalsIgnoreCase("DISCONNECT")) {
                             window.firstWindow.setContentPane(window.loginPanel);
                             window.firstWindow.revalidate();
-                            player.status = Status.DISCONNECTED;
-                            player.endConnection();
+                            user.status = Status.DISCONNECTED;
+                            user.endConnection();
                             is_valid = true;
                         }
                         is_valid = true;
@@ -199,6 +182,17 @@ public class Reader implements Runnable
             }
             is_valid = false;
         }
+    }
+
+    private void user_left() {
+        window.yourBTsPanel.removeAll();
+        window.opponentBTsPanel.removeAll();
+        window.yourBTsPanel.revalidate();
+        window.opponentBTsPanel.revalidate();
+        window.infoLB.setText("You left from game.");
+        JOptionPane.showMessageDialog(null, "You left from game.");
+        window.firstWindow.setContentPane(window.gamePanel);
+        is_valid = true;
     }
 
     private void opp_left() {
@@ -225,7 +219,7 @@ public class Reader implements Runnable
         window.yourBTsPanel.revalidate();
         window.opponentBTsPanel.revalidate();
         window.firstWindow.setContentPane(window.gamePanel);
-        player.status = Status.IN_LOBBY;
+        user.status = Status.IN_LOBBY;
         is_valid = true;
     }
 
@@ -250,8 +244,8 @@ public class Reader implements Runnable
             window.yourBTsPanel.revalidate();
             window.opponentBTsPanel.revalidate();
             is_valid = true;
-            player.sendMessage("RECONNECT|OK");
-            player.status = Status.IN_GAME;
+            user.sendMessage("RECONNECT|OK");
+            user.status = Status.IN_GAME;
             window.yourBTsPanel.revalidate();
             window.opponentBTsPanel.revalidate();
 
@@ -274,7 +268,7 @@ public class Reader implements Runnable
             if (splited[2].equalsIgnoreCase("OPP"))
                 window.oppLB.setText("Opponent: " + window.oppNameString + " ships count: " + splited[6]);
             else {
-                window.yourLB.setText("Your ship count: " + splited[4]);
+                window.userLB.setText("Your ship count: " + splited[4]);
             }
         }
         else {
@@ -321,7 +315,7 @@ public class Reader implements Runnable
 
             window.clientButtons = window.initGameButtons(splited[3], false);
             window.oppLB.setText("Opponent: " + window.oppNameString + " ships count: " + splited[6] );
-            window.yourLB.setText("Your ship count: " + splited[5]);
+            window.userLB.setText("Your ship count: " + splited[5]);
             window.addButtonsToBoard(window.yourBTsPanel, window.clientButtons);
             window.oppButtons = window.initGameButtons(EMPTY_BOARD, true);
             window.addButtonsToBoard(window.opponentBTsPanel, window.oppButtons);
@@ -330,7 +324,7 @@ public class Reader implements Runnable
             window.yourBTsPanel.revalidate();
             window.opponentBTsPanel.revalidate();
             is_valid = true;
-            player.status = Status.IN_GAME;
+            user.status = Status.IN_GAME;
 
         }
 
@@ -379,7 +373,7 @@ public class Reader implements Runnable
         window.opponentBTsPanel.removeAll();
         window.firstWindow.setContentPane(window.gamePanel);
         window.firstWindow.revalidate();
-        player.status = Status.IN_LOBBY;
+        user.status = Status.IN_LOBBY;
     }
 
     private void setBoardItem(String[] splited, Color color) {

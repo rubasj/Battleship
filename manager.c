@@ -28,24 +28,24 @@ void connect_client(Players **array_clients, games *all_games, game_finder *wann
         return;
     }
 
-    if (player_name_exists((*array_clients), name) == 0) {         // pokud jmeno neexistuje
+    if (player_check_name_exists((*array_clients), name) == 0) {         // pokud jmeno neexistuje
         if (((*array_clients)->players_count) < MAX_PLAYERS) {
             if (new_client == NULL) {
                 player_add(array_clients, name, fd);
 				new_client = (*array_clients)->players[(*array_clients)->players_count - 1];    // ulozeni clienta na posledni misto
                 new_client->state = IN_LOBBY;
-//				pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);
+				pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);
 				printf("Name: %s\n", (*array_clients)->players[(*array_clients)->players_count - 1]->name);
 				char *message = "CONNECT|OK\n";
 				send_message(fd, message); 
             }
             else {
-                Player *old_client = get_player_by_socket_ID(*array_clients, fd);
+                Player *old_client = get_player_by_socket(*array_clients, fd);
                 inform_opponent_about_leave(array_clients, all_games, old_client->socket_ID);
                 player_remove(array_clients, old_client->socket_ID);
 
                 player_add(array_clients, name, fd);
-                new_client = get_player_by_socket_ID(*array_clients, fd);
+                new_client = get_player_by_socket(*array_clients, fd);
 
 	            new_client = (*array_clients) -> players[(*array_clients) -> players_count - 1];
 	            pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);
@@ -70,7 +70,7 @@ void connect_client(Players **array_clients, games *all_games, game_finder *wann
                     player_remove(array_clients, old_client->socket_ID);
                 }
                 player_add(array_clients, name, fd);
-                new_client = get_player_by_socket_ID(*array_clients, fd);
+                new_client = get_player_by_socket(*array_clients, fd);
 
 	            new_client = (*array_clients) -> players[(*array_clients) -> players_count - 1];
 	            pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client); 
@@ -90,7 +90,7 @@ void connect_client(Players **array_clients, games *all_games, game_finder *wann
 }
 
 void play(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl){
-    if((*cl)->state == WANNA_PLAY) {
+    if((*cl)->state == FINDING_GAME) {
         send_message(fd, "PLAY|ERR\n");
         return;
     }
@@ -99,8 +99,8 @@ void play(Players **array_clients, game_finder **wanna_plays, games **all_games,
         return;
     }
 
-    add_wanna_play(wanna_plays, fd);
-    (*cl) -> state = WANNA_PLAY;
+    add_game_finder(wanna_plays, fd);
+    (*cl) -> state = FINDING_GAME;
 
     send_message(fd, "PLAY|WAIT\n");
 
@@ -115,11 +115,11 @@ void play(Players **array_clients, game_finder **wanna_plays, games **all_games,
 	}
 	while(socket_ID_2 == socket_ID_1);
 
-    remove_wanna_play(wanna_plays, socket_ID_1);
-	remove_wanna_play(wanna_plays, socket_ID_2);
+    remove_game_finder(wanna_plays, socket_ID_1);
+    remove_game_finder(wanna_plays, socket_ID_2);
 
-    Player *player_1 = get_player_by_socket_ID(*array_clients, socket_ID_1);
-    Player *player_2 = get_player_by_socket_ID(*array_clients, socket_ID_2);
+    Player *player_1 = get_player_by_socket(*array_clients, socket_ID_1);
+    Player *player_2 = get_player_by_socket(*array_clients, socket_ID_2);
 
     game *this_game = create_game(all_games, player_1->name, player_2->name); // vytvoreni hry
 
@@ -280,10 +280,59 @@ void attack_position(Players **array_clients, games **all_games, int fd, Player 
     check_game_end(array_clients, this_game, all_games);
 }
 
+void game_leave(Players **array_clients, game_finder **game_finders, games **all_games, int fd, Player **cl, fd_set c_s) {
+    Player *my_cl = get_player_by_socket(*array_clients, fd);
+
+    if(my_cl != NULL)
+        cl = &my_cl;
+    else{
+        char *message = "DISCONNECT\n";
+        send_message(fd, message);
+        close(fd);
+        FD_CLR(fd, &c_s);
+        return;
+    }
 
 
-void exit_client(Players **array_clients, game_finder **wanna_plays, games **all_games, int fd, Player **cl, fd_set c_s){
-    Player *my_cl = get_player_by_socket_ID(*array_clients, fd);
+    if((*cl)->state == FINDING_GAME) {
+        remove_game_finder(game_finders, fd);
+        (*cl)->socket_ID == 0;
+    }
+        //klient je ve hre
+    else if((*cl)->state == PLAYING) {
+        int game_id = get_game_by_player_name(all_games, cl)->game_ID;
+
+        char *name1 = get_game_by_player_name(all_games, cl)->name_1;
+        char *name2 = get_game_by_player_name(all_games, cl)->name_2;
+
+        char *second_player_name;
+
+        if(strcmp(get_player_by_name(*array_clients, name1)->name, (*cl)->name) == 0) {
+            second_player_name = name2;
+        }
+        else {
+            second_player_name = name1;
+        }
+
+        int second_player_socketID = get_player_by_name(*array_clients, second_player_name)->socket_ID;
+        char *message = "LEAVE\n";
+        send_message(second_player_socketID, message);
+        remove_game(all_games, game_id);
+
+        get_player_by_name(*array_clients, name1)->state = IN_LOBBY;
+        get_player_by_name(*array_clients, name2)->state = IN_LOBBY;
+    }
+
+    char *message_2 = "GAME_EXIT\n";
+    send_message(fd, message_2);
+
+
+}
+
+
+
+void exit_client(Players **array_clients, game_finder **game_finders, games **all_games, int fd, Player **cl, fd_set c_s){
+    Player *my_cl = get_player_by_socket(*array_clients, fd);
 
     if(my_cl != NULL)
         cl = &my_cl;
@@ -295,13 +344,13 @@ void exit_client(Players **array_clients, game_finder **wanna_plays, games **all
         return;
     }
 
-    if((*cl)->state == WANNA_PLAY) {
-        remove_wanna_play(wanna_plays, fd);
+    if((*cl)->state == FINDING_GAME) {
+        remove_game_finder(game_finders, fd);
         (*cl)->socket_ID == 0;
     }
 
     //klient je ve hre
-    else if((*cl)->state == 3) {
+    else if((*cl)->state == PLAYING) {
         int game_id = get_game_by_player_name(all_games, cl)->game_ID;
         
         char *name1 = get_game_by_player_name(all_games, cl)->name_1;
@@ -352,7 +401,7 @@ void process_reconnect_mess(char* tok, Players **array_clients, game_finder **wa
 
     char *result = tok;
     printf("CLIENT reconnect 1.");
-    Player *cl = get_player_by_socket_ID(*array_clients, fd);
+    Player *cl = get_player_by_socket(*array_clients, fd);
     printf("CLIENT reconnect 2.");
     if(strcmp(result, "OK") == 0){
         printf("CLIENT reconnect 3.");
@@ -393,7 +442,7 @@ void reconnect_new_connect(Players **array_clients, games *all_games, char *name
 
     //vytvoreni add noveho klienta
     player_add(array_clients, name, fd);
-    new_client = get_player_by_socket_ID(*array_clients, fd);
+    new_client = get_player_by_socket(*array_clients, fd);
 
 	new_client = (*array_clients) -> players[(*array_clients) -> players_count - 1];
 	pthread_create(&(new_client -> client_thread), NULL, &check_connectivity, new_client);  
@@ -434,7 +483,7 @@ void reconnect_new_connect(Players **array_clients, games *all_games, char *name
 
 
 void inform_opponent_about_disconnect(Players **array_clients, games *all_games, int fd) {
-    Player *this_client = get_player_by_socket_ID(*array_clients, fd);
+    Player *this_client = get_player_by_socket(*array_clients, fd);
     
     if(this_client == NULL)
         return;
@@ -456,7 +505,7 @@ void inform_opponent_about_disconnect(Players **array_clients, games *all_games,
 
 
 void inform_opponent_about_leave(Players **array_clients, games *all_games, int fd) {
-    Player *this_client = get_player_by_socket_ID(*array_clients, fd);
+    Player *this_client = get_player_by_socket(*array_clients, fd);
     
     if(this_client == NULL)
         return;

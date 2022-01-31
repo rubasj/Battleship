@@ -19,6 +19,9 @@ public class Client
     public CommunicationHandler ch = null;
     public Window window = null;
 
+
+    private CheckerConn cc;
+
     public Status status;
 
     public Client(CommunicationHandler ch){
@@ -48,23 +51,16 @@ public class Client
             System.out.println("Player socket created!");
         }catch(Exception e){ 
             window.connectionInfoLB.setText("Invalid connection parameters!");;
-            System.out.println(e);
+
         } 
         
     }
 
-    public boolean hostAvailabilityCheck(String address, int port) {
-        try (Socket s = new Socket(address, port)) {
-            return true;
-        } catch (IOException ex) {
-            /* ignore */
-        }
-        return false;
-    }
 
     public void endConnection(){
         try {
 
+            cc.join();
             writer.close();
             reader.stop();
             skt.close();
@@ -80,7 +76,7 @@ public class Client
             writer.write("[" + message + "]\n");
             writer.flush();
         } catch (Exception e) {
-
+//
         }
     }
 

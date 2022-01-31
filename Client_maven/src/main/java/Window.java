@@ -29,16 +29,17 @@ public class Window {
     /** Butons */
     public JButton findGameBT;
     public JButton disconnBT;
+    public JButton leaveBT;
 
     /**
      * Labels
      */
     public String oppNameString;
-    public String clientNameString;
+    public String userNameString;
     public JLabel infoLB;
     public JLabel connectionInfoLB;
     public JLabel oppLB;
-    public JLabel yourLB;
+    public JLabel userLB;
 
     public final Client player;
     public final CommunicationHandler handler;
@@ -150,7 +151,7 @@ public class Window {
                 try {
                     player.sendMessage("EXIT");
                     Thread.sleep(100);
-                } catch (Exception eee) {
+                } catch (Exception oe) {
                     //TODO: handle exception
                 }
         });
@@ -162,6 +163,18 @@ public class Window {
         this.gamePanel = new JPanel();
         gamePanel.setLayout(new GridLayout(3,2));
 
+        leaveBT = new JButton("Leave game");
+
+        leaveBT.addActionListener(e -> {
+            player.sendMessage("LEAVE");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+
+        });
+
         controlPanel = new JPanel();
         infoPanel = new JPanel();
 
@@ -169,19 +182,20 @@ public class Window {
         opponentBTsPanel = new JPanel(new GridLayout(10,10));
         infoLB = new JLabel("Generic message!");
         oppLB = new JLabel("Opponent");
-        yourLB = new JLabel("Your ship count: ");
+        userLB = new JLabel("Your ship count: ");
 
         gamePanel.add(infoPanel);
         gamePanel.add(controlPanel);
-        gamePanel.add(yourLB);
+        gamePanel.add(userLB);
         gamePanel.add(oppLB);
         gamePanel.add(yourBTsPanel);
         gamePanel.add(opponentBTsPanel);
         infoPanel.add(infoLB);
+        infoPanel.add(leaveBT);
     }
 
     /**
-     *
+     *  Initializing buttons board
      * @param board board in string
      * @param enabledForAttack info, that board is for current client or for opp board
      * @return buttons panel
