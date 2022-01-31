@@ -127,6 +127,11 @@ public class Reader implements Runnable
                         System.out.println("PING from server OK.");
                     }
 
+                    long ping = System.currentTimeMillis() - ping_time;
+                    if (ping > 60000) {
+                        user.endConnection();
+                    }
+
                     if(splited[0].equalsIgnoreCase("RECONNECT")) {
                         ping_time = System.currentTimeMillis();
                        reconnect(splited);
